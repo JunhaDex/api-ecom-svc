@@ -124,6 +124,12 @@ create table user_group_product
         foreign key (group_id) references user_group (id)
 );
 
+create index user_group_product_group_id_index
+    on user_group_product (group_id);
+
+create index user_group_product_product_id_index
+    on user_group_product (product_id);
+
 create table cart_user_product
 (
     id         int unsigned auto_increment
@@ -137,6 +143,12 @@ create table cart_user_product
     constraint cart_user_product_user_id_fk
         foreign key (user_id) references user (id)
 );
+
+create index cart_user_product_product_id_index
+    on cart_user_product (product_id);
+
+create index cart_user_product_user_id_index
+    on cart_user_product (user_id);
 
 create table payment
 (
