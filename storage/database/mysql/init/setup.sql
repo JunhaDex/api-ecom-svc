@@ -83,7 +83,7 @@ create table user
     branch_name    varchar(255)                           not null,
     branch_manager varchar(255)                           not null,
     branch_contact varchar(20)                            not null,
-    group_id       int unsigned                           not null,
+    group_id       int unsigned                           null,
     status         int unsigned default '1'               not null,
     created_at     timestamp    default CURRENT_TIMESTAMP not null,
     updated_at     datetime     default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,

@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { AdminCreateInput, AdminUser } from '@/types/admin.type';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminUserEntity } from '@/resources/admin/entities/admin.entity';
@@ -8,7 +9,15 @@ import { Paginate, SvcQuery } from '@/types/general.type';
 
 @Injectable()
 export class AdminService {
+  static ADMIN_SERVICE_EXCEPTIONS = {
+    ADMIN_EXISTS: 'ADMIN_EXISTS',
+    ADMIN_NOT_FOUND: 'ADMIN_NOT_FOUND',
+  } as const;
+
+  private readonly Exceptions = AdminService.ADMIN_SERVICE_EXCEPTIONS;
+
   constructor(
+    private jwtService: JwtService,
     @InjectRepository(AdminUserEntity)
     private adminRepo: Repository<AdminUserEntity>,
   ) {}
@@ -27,8 +36,8 @@ export class AdminService {
         adminId: newAdmin.userId,
         pwd: pass,
         name: newAdmin.name,
-        createdAt: new Date(),
       });
+      console.log('admin', pass);
       await this.adminRepo.save(admin);
     }
   }
@@ -46,7 +55,6 @@ export class AdminService {
         return acc;
       }, {} as any);
     }
-    console.log(whereClause);
     const [list, total] = await this.adminRepo.findAndCount({
       select: ['id', 'adminId', 'name', 'createdAt'],
       where: whereClause as any,
@@ -57,12 +65,7 @@ export class AdminService {
       skip,
     });
     return {
-      list: list.map((admin) => ({
-        id: admin.id,
-        adminId: admin.adminId,
-        name: admin.name,
-        createdAt: admin.createdAt,
-      })),
+      list,
       meta: {
         pageNo: options?.page?.pageNo ?? 1,
         pageSize: options?.page?.pageSize ?? 10,
@@ -82,8 +85,26 @@ export class AdminService {
     } as AdminUser;
   }
 
-  async loginAdmin(params: { userId: string; password: string }) {
-
+  async loginAdmin(params: {
+    userId: string;
+    pwd: string;
+  }): Promise<{ accessToken: string }> {
+    const admin = await this.adminRepo.findOne({
+      where: { adminId: params.userId },
+    });
+    if (admin) {
+      if (await bcrypt.compare(params.pwd, admin.pwd)) {
+        const payload = {
+          adminId: admin.adminId,
+          name: admin.name,
+          sub: admin.id,
+        };
+        return {
+          accessToken: this.jwtService.sign(payload, { expiresIn: '1d' }),
+        };
+      }
+    }
+    throw new Error(this.Exceptions.ADMIN_NOT_FOUND);
   }
 
   async updateAdminPwd(
@@ -92,9 +113,39 @@ export class AdminService {
       oldPwd: string;
       newPwd: string;
     },
-  ) {}
+  ): Promise<void> {
+    const admin = await this.adminRepo.findOne({ where: { id: index } });
+    if (admin) {
+      if (await bcrypt.compare(params.oldPwd, admin.pwd)) {
+        const rnd = Number(process.env.BC_SALT_RND);
+        const salt = await bcrypt.genSalt(rnd);
+        const pass = await bcrypt.hash(params.newPwd, salt);
+        console.log('pass', salt);
+        await this.adminRepo.update({ id: index }, { pwd: pass });
+      }
+      return;
+    }
+    throw new Error(this.Exceptions.ADMIN_NOT_FOUND);
+  }
 
-  async updateAdminInfo() {}
+  async updateAdminInfo(
+    index: number,
+    params: { name?: string },
+  ): Promise<void> {
+    const admin = await this.adminRepo.findOne({ where: { id: index } });
+    if (admin) {
+      await this.adminRepo.update({ id: index }, params);
+      return;
+    }
+    throw new Error(this.Exceptions.ADMIN_NOT_FOUND);
+  }
 
-  async deleteAdmin() {}
+  async deleteAdmin(index: number): Promise<void> {
+    const admin = await this.adminRepo.findOne({ where: { id: index } });
+    if (admin) {
+      await this.adminRepo.delete({ id: index });
+      return;
+    }
+    throw new Error(this.Exceptions.ADMIN_NOT_FOUND);
+  }
 }

@@ -9,6 +9,7 @@ import { TransactionModule } from '@/resources/transaction/transaction.module';
 import { PaymentModule } from '@/resources/payment/payment.module';
 import { ShipmentModule } from '@/resources/shipment/shipment.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -23,6 +24,11 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
       namingStrategy: new SnakeNamingStrategy(),
       synchronize: false,
       logging: true,
+    }),
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET_HASH,
+      signOptions: { expiresIn: '1d' },
     }),
     AdminModule,
     UserModule,

@@ -22,5 +22,5 @@ export class UserEntity {
   @Column()
   updatedAt: Date;
   @ManyToOne(() => UserGroupEntity, (userGroup) => userGroup.users)
-  userGroup: UserGroupEntity;
+  userGroup: UserGroupEntity | null;
 }

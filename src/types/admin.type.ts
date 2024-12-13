@@ -22,9 +22,24 @@ export interface User {
   branchName: string;
   branchManager: string;
   branchContact: string;
-  status: string;
+  status: number;
   createdAt: Date;
   updatedAt: Date;
+  userGroup?: UserGroup;
+}
+
+export interface UserCreateInput {
+  userId: string;
+  pwd: string;
+  branchName: string;
+  branchManager: string;
+  branchContact: string;
+}
+
+export interface UserUpdateInput {
+  branchName?: string;
+  branchManager?: string;
+  branchContact?: string;
 }
 
 export interface UserGroup {
@@ -33,7 +48,19 @@ export interface UserGroup {
   description: string;
   createdAt: Date;
   users?: User[];
+  usersCount?: number;
   products?: Product[];
+  productsCount?: number;
+}
+
+export interface UserGroupCreateInput {
+  groupName: string;
+  description: string;
+}
+
+export interface UserGroupUpdateInput {
+  groupName?: string;
+  description?: string;
 }
 
 export interface Product {
@@ -42,7 +69,7 @@ export interface Product {
   description: string;
   imageUris: string;
   productPrice: number;
-  status: string;
+  status: number;
   productDescription: string;
   createdAt: Date;
 }

@@ -6,6 +6,8 @@ export class ProductService {
 
   async getProductList() {}
 
+  async getProductByGroup() {}
+
   async getProduct() {}
 
   async updateProduct() {}

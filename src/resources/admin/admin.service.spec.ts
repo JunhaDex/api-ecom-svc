@@ -1,18 +1,23 @@
+import 'dotenv/config';
+import bcrypt from 'bcrypt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdminService } from './admin.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AdminUserEntity } from '@/resources/admin/entities/admin.entity';
 import { Repository } from 'typeorm';
 import { PageMeta } from '@/types/general.type';
+import { JwtService } from '@nestjs/jwt';
 
 describe('AdminService', () => {
   let service: AdminService;
   let adminRepo: Repository<AdminUserEntity>;
+  let jwtService: JwtService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AdminService,
+        JwtService,
         {
           provide: getRepositoryToken(AdminUserEntity),
           useValue: {
@@ -20,6 +25,8 @@ describe('AdminService', () => {
             findAndCount: jest.fn(),
             create: jest.fn(),
             save: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
           },
         },
       ],
@@ -29,6 +36,7 @@ describe('AdminService', () => {
     adminRepo = module.get<Repository<AdminUserEntity>>(
       getRepositoryToken(AdminUserEntity),
     );
+    jwtService = module.get<JwtService>(JwtService);
   });
 
   it('should be defined', () => {
@@ -75,18 +83,16 @@ describe('AdminService', () => {
       {
         id: 1,
         adminId: 'admin',
-        pwd: '****',
         name: 'admin',
         createdAt: new Date(),
       },
       {
         id: 2,
         adminId: 'admin2',
-        pwd: '****',
         name: 'admin2',
         createdAt: new Date(),
       },
-    ];
+    ] as AdminUserEntity[];
     it('should getAdminList paginate', async () => {
       jest
         .spyOn(adminRepo, 'findAndCount')
@@ -139,6 +145,97 @@ describe('AdminService', () => {
         name: admin.name,
         createdAt: admin.createdAt,
       });
+    });
+  });
+
+  describe('loginAdmin', () => {
+    it('should loginAdmin', async () => {
+      const admin = {
+        id: 1,
+        adminId: 'admin',
+        pwd: '****',
+        name: 'admin',
+        createdAt: new Date(),
+      };
+      jest.spyOn(adminRepo, 'findOne').mockResolvedValueOnce(admin);
+      (jest.spyOn(bcrypt, 'compare') as jest.Mock).mockResolvedValueOnce(true);
+      jest.spyOn(jwtService, 'sign').mockReturnValueOnce('token');
+      const result = await service.loginAdmin({
+        userId: admin.adminId,
+        pwd: admin.pwd,
+      });
+      expect(result).toEqual({ accessToken: expect.any(String) });
+    });
+  });
+
+  describe('updateAdminPwd', () => {
+    it('should updateAdminPwd', async () => {
+      const admin = {
+        id: 1,
+        adminId: 'admin',
+        pwd: '****',
+        name: 'admin',
+        createdAt: new Date(),
+      };
+      const findSpy = jest
+        .spyOn(adminRepo, 'findOne')
+        .mockResolvedValueOnce(admin);
+      const updateSpy = jest
+        .spyOn(adminRepo, 'update')
+        .mockResolvedValueOnce({} as any);
+      (jest.spyOn(bcrypt, 'compare') as jest.Mock).mockResolvedValueOnce(true);
+      (jest.spyOn(bcrypt, 'hash') as jest.Mock).mockResolvedValueOnce(
+        'somewhat',
+      );
+      await service.updateAdminPwd(admin.id, {
+        oldPwd: '****',
+        newPwd: 'somewhat',
+      });
+      expect(findSpy).toBeCalledWith({ where: { id: admin.id } });
+      expect(updateSpy).toBeCalledWith(
+        { id: admin.id },
+        { pwd: expect.any(String) },
+      );
+    });
+  });
+  describe('updateAdminInfo', () => {
+    it('should updateAdminInfo', async () => {
+      const admin = {
+        id: 1,
+        adminId: 'admin',
+        pwd: '****',
+        name: 'admin',
+        createdAt: new Date(),
+      };
+      const findSpy = jest
+        .spyOn(adminRepo, 'findOne')
+        .mockResolvedValueOnce(admin);
+      const updateSpy = jest
+        .spyOn(adminRepo, 'update')
+        .mockResolvedValueOnce({} as any);
+      await service.updateAdminInfo(admin.id, { name: 'new name' });
+      expect(findSpy).toBeCalledWith({ where: { id: admin.id } });
+      expect(updateSpy).toBeCalledWith({ id: admin.id }, { name: 'new name' });
+    });
+  });
+  describe('deleteAdmin', () => {
+    it('should deleteAdmin', async () => {
+      const admin = {
+        id: 1,
+        adminId: 'admin',
+        pwd: '****',
+        name: 'admin',
+        createdAt: new Date(),
+      };
+      const findSpy = jest
+        .spyOn(adminRepo, 'findOne')
+        .mockResolvedValueOnce(admin);
+      const deleteSpy = jest
+        .spyOn(adminRepo, 'delete')
+        .mockResolvedValueOnce({} as any);
+      await service.deleteAdmin(admin.id);
+      expect(findSpy).toBeCalledWith({ where: { id: admin.id } });
+      expect(deleteSpy).toBeCalledWith({ id: admin.id });
     });
   });
 });
