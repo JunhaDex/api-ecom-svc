@@ -67,9 +67,22 @@ export interface Product {
   id: number;
   productName: string;
   description: string;
-  imageUris: string;
+  imageUrls: string[];
   productPrice: number;
   status: number;
-  productDescription: string;
   createdAt: Date;
+}
+
+export interface ProductCreateInput {
+  productName: string;
+  description: string;
+  imageUrls: string[];
+  productPrice: number;
+}
+
+export interface ProductUpdateInput {
+  productName?: string;
+  description?: string;
+  imageUrls?: string[];
+  productPrice?: number;
 }

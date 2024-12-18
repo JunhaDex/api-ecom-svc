@@ -1,0 +1,33 @@
+POST http://localhost:3000/api/v1/admin/user/group/new
+Content-Type: application/json
+
+{
+  "groupName": "group1",
+  "description": "group1 description"
+}
+
+###
+POST http://localhost:3000/api/v1/admin/product/new
+Content-Type: application/json
+
+{
+  "productName": "product3",
+  "productPrice": 50000.12,
+  "description": "product3 description"
+}
+
+###
+GET http://localhost:3000/api/v1/admin/auth/list
+Accept: application/json
+
+###
+POST http://localhost:3000/api/v1/admin/auth/new
+Content-Type: application/json
+
+{
+  "userId": "admin",
+  "pwd": "admin",
+  "name": "admin"
+}
+
+###

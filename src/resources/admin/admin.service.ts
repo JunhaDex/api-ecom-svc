@@ -40,12 +40,14 @@ export class AdminService {
       console.log('admin', pass);
       await this.adminRepo.save(admin);
     }
+    throw new Error(this.Exceptions.ADMIN_EXISTS);
   }
 
   async getAdminList(options?: SvcQuery): Promise<Paginate<AdminUser>> {
     const searchOptions = ['adminId', 'name'];
     const take = options?.page?.pageSize ?? 10;
-    const skip = (options?.page?.pageNo ?? 1 - 1) * take;
+    const skip = ((options?.page?.pageNo ?? 1) - 1) * take;
+    console.log('skip', options?.page?.pageNo ?? 1 - 1);
     let whereClause: { (key: string): any } = undefined;
     if (options?.search) {
       whereClause = Object.keys(options.search).reduce((acc, key) => {

@@ -17,3 +17,8 @@ export interface SvcQuery {
   };
   search?: any;
 }
+
+export interface DataTransfer<T> {
+  must: (keyof T)[];
+  optional?: (keyof T)[];
+}

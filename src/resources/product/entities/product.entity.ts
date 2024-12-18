@@ -15,13 +15,11 @@ export class ProductEntity {
   @Column()
   description: string;
   @Column('simple-json')
-  imageUris: string;
+  imageUrls: string[];
   @Column()
   productPrice: number;
   @Column()
   status: number;
-  @Column()
-  productDescription: string;
   @Column()
   createdAt: Date;
 }
