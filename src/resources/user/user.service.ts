@@ -53,7 +53,7 @@ export class UserService {
   async getUserList(options?: SvcQuery): Promise<Paginate<User>> {
     const searchOptions = ['userId', 'branchName'];
     const take = options?.page?.pageSize ?? 10;
-    const skip = (options?.page?.pageNo ?? 1 - 1) * take;
+    const skip = ((options?.page?.pageNo ?? 1) - 1) * take;
     let whereClause: { (key: string): any } = undefined;
     if (options?.search) {
       whereClause = Object.keys(options.search).reduce((acc, key) => {

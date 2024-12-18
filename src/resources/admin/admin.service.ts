@@ -39,6 +39,7 @@ export class AdminService {
       });
       console.log('admin', pass);
       await this.adminRepo.save(admin);
+      return;
     }
     throw new Error(this.Exceptions.ADMIN_EXISTS);
   }

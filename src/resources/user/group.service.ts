@@ -55,7 +55,7 @@ export class GroupService {
   async getGroupList(options?: SvcQuery): Promise<Paginate<UserGroup>> {
     const searchOptions = ['groupName'];
     const take = options?.page?.pageSize ?? 10;
-    const skip = (options?.page?.pageNo ?? 1 - 1) * take;
+    const skip = ((options?.page?.pageNo ?? 1) - 1) * take;
     let whereClause: { (key: string): any } = undefined;
     if (options?.search) {
       whereClause = Object.keys(options.search).reduce((acc, key) => {
@@ -157,14 +157,14 @@ export class GroupService {
         .leftJoin(
           UserGroupProductEntity,
           'ugp',
-          'ugp.productId = product.id AND ugp.groupId = :groupId',
+          'ugp.productId = product.id AND ugp.userGroupId = :groupId',
           { groupId: index },
         )
-        .select(['product.id', 'product.name', 'ugp.groupId'])
+        .select(['product.id', 'product.productName', 'ugp.userGroupId'])
         .where('product.id IN (:...productIds)', {
           productIds: products.map((product) => product.id),
         })
-        .andWhere('ugp.groupId IS NULL')
+        .andWhere('ugp.userGroupId IS NULL')
         .getMany();
       const newProducts = availables.map((product) =>
         this.groupProductRepo.create({

@@ -2,9 +2,12 @@ import {
   Column,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   PrimaryColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { UserGroupEntity } from '@/resources/user/entities/group.entity';
 
 @Entity({ name: 'product' })
 export class ProductEntity {
@@ -35,4 +38,10 @@ export class UserGroupProductEntity {
   productId: number;
   @Column()
   createdAt: Date;
+  @ManyToOne(() => UserGroupEntity, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'group_id' })
+  userGroup: UserGroupEntity;
+  @ManyToOne(() => ProductEntity, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'product_id' })
+  product: ProductEntity;
 }
