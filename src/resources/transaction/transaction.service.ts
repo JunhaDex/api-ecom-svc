@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from "@nestjs/typeorm";
+import { InjectRepository } from '@nestjs/typeorm';
+import { TransactionEntity } from '@/resources/transaction/entities/transaction.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TransactionService {
@@ -10,6 +12,8 @@ export class TransactionService {
   private readonly Exceptions =
     TransactionService.TRANSACTION_SERVICE_EXCEPTIONS;
 
-  constructor() {
-  }
+  constructor(
+    @InjectRepository(TransactionEntity)
+    private transactionRepository: Repository<TransactionEntity>,
+  ) {}
 }

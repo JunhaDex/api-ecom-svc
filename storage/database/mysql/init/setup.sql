@@ -222,7 +222,7 @@ create table shipment
     address         varchar(255)                        not null,
     recipient_name  varchar(255)                        not null,
     recipient_phone varchar(20)                         not null,
-    tracking_no     int                                 not null,
+    tracking_no     varchar(255)                        not null,
     status          int unsigned                        not null,
     created_at      timestamp default CURRENT_TIMESTAMP not null,
     updated_at      datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,

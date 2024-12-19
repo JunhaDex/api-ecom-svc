@@ -86,3 +86,43 @@ export interface ProductUpdateInput {
   imageUrls?: string[];
   productPrice?: number;
 }
+
+export interface Payment {
+  id: number;
+  sessionKey: string;
+  payMethod: string;
+  paymentKey: string;
+  orderId: string;
+  paidAmount: number;
+  balanceAmount: number;
+  paidAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PaymentCreateInput {
+  sessionKey: string;
+  payMethod: string;
+  paymentKey: string;
+  orderId: string;
+  paidAmount: number;
+  balanceAmount: number;
+  paidAt: Date;
+}
+
+export interface Courier {
+  id: number;
+  courierName: string;
+  apiUrl: string;
+  createdAt: Date;
+}
+
+export interface CourierCreateInput {
+  courierName: string;
+  apiUrl: string;
+}
+
+export interface CourierUpdateInput {
+  courierName?: string;
+  apiUrl?: string;
+}
