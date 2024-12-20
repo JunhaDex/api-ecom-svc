@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaymentEntity } from '@/resources/payment/entities/payment.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { PaymentCreateInput } from '@/types/admin.type';
 
 @Injectable()
@@ -17,7 +17,10 @@ export class PaymentService {
     private paymentRepository: Repository<PaymentEntity>,
   ) {}
 
-  async createPayment(newPayment: PaymentCreateInput): Promise<void> {
+  async createPayment(
+    newPayment: PaymentCreateInput,
+    manager?: EntityManager,
+  ): Promise<void | PaymentEntity> {
     const payment = this.paymentRepository.create({
       sessionKey: newPayment.sessionKey,
       payMethod: newPayment.payMethod,
@@ -27,6 +30,9 @@ export class PaymentService {
       balanceAmount: newPayment.balanceAmount,
       paidAt: newPayment.paidAt,
     });
+    if (manager) {
+      return await manager.save(PaymentEntity, payment);
+    }
     await this.paymentRepository.save(payment);
   }
 }

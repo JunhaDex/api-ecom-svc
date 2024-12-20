@@ -1,4 +1,4 @@
-create if not exists database service;
+create database if not exists service;
 use service;
 
 create table status_user
@@ -9,9 +9,12 @@ create table status_user
     created_at  timestamp default CURRENT_TIMESTAMP not null
 );
 
-INSERT INTO service.status_user (id, status_name, created_at) VALUES (1, 'default', '2024-12-07 16:27:30');
-INSERT INTO service.status_user (id, status_name, created_at) VALUES (2, 'readonly', '2024-12-07 16:27:30');
-INSERT INTO service.status_user (id, status_name, created_at) VALUES (3, 'blocked', '2024-12-07 16:27:30');
+INSERT INTO service.status_user (id, status_name, created_at)
+VALUES (1, 'default', '2024-12-07 16:27:30');
+INSERT INTO service.status_user (id, status_name, created_at)
+VALUES (2, 'readonly', '2024-12-07 16:27:30');
+INSERT INTO service.status_user (id, status_name, created_at)
+VALUES (3, 'blocked', '2024-12-07 16:27:30');
 
 
 create table status_product
@@ -22,8 +25,10 @@ create table status_product
     created_at  timestamp default CURRENT_TIMESTAMP not null
 );
 
-INSERT INTO service.status_product (id, status_name, created_at) VALUES (1, 'on sale', '2024-12-07 16:27:30');
-INSERT INTO service.status_product (id, status_name, created_at) VALUES (2, 'hide', '2024-12-07 16:27:30');
+INSERT INTO service.status_product (id, status_name, created_at)
+VALUES (1, 'on sale', '2024-12-07 16:27:30');
+INSERT INTO service.status_product (id, status_name, created_at)
+VALUES (2, 'hide', '2024-12-07 16:27:30');
 
 create table status_transaction
 (
@@ -33,12 +38,18 @@ create table status_transaction
     created_at  timestamp default CURRENT_TIMESTAMP not null
 );
 
-INSERT INTO service.status_transaction (id, status_name, created_at) VALUES (1, 'purchased', '2024-12-07 16:52:52');
-INSERT INTO service.status_transaction (id, status_name, created_at) VALUES (2, 'shipped', '2024-12-07 16:52:52');
-INSERT INTO service.status_transaction (id, status_name, created_at) VALUES (3, 'delivered', '2024-12-07 16:52:52');
-INSERT INTO service.status_transaction (id, status_name, created_at) VALUES (4, 'returned', '2024-12-07 16:52:52');
-INSERT INTO service.status_transaction (id, status_name, created_at) VALUES (5, 'partial returned', '2024-12-07 16:52:52');
-INSERT INTO service.status_transaction (id, status_name, created_at) VALUES (6, 'canceled', '2024-12-07 16:52:52');
+INSERT INTO service.status_transaction (id, status_name, created_at)
+VALUES (1, 'purchased', '2024-12-07 16:52:52');
+INSERT INTO service.status_transaction (id, status_name, created_at)
+VALUES (2, 'shipped', '2024-12-07 16:52:52');
+INSERT INTO service.status_transaction (id, status_name, created_at)
+VALUES (3, 'delivered', '2024-12-07 16:52:52');
+INSERT INTO service.status_transaction (id, status_name, created_at)
+VALUES (4, 'returned', '2024-12-07 16:52:52');
+INSERT INTO service.status_transaction (id, status_name, created_at)
+VALUES (5, 'partial returned', '2024-12-07 16:52:52');
+INSERT INTO service.status_transaction (id, status_name, created_at)
+VALUES (6, 'canceled', '2024-12-07 16:52:52');
 
 create table status_shipment
 (
@@ -48,9 +59,12 @@ create table status_shipment
     created_at  timestamp default CURRENT_TIMESTAMP not null
 );
 
-INSERT INTO service.status_shipment (id, status_name, created_at) VALUES (1, 'in transit', '2024-12-07 22:56:25');
-INSERT INTO service.status_shipment (id, status_name, created_at) VALUES (2, 'delivered', '2024-12-07 22:56:25');
-INSERT INTO service.status_shipment (id, status_name, created_at) VALUES (3, 'error', '2024-12-07 22:56:25');
+INSERT INTO service.status_shipment (id, status_name, created_at)
+VALUES (1, 'in transit', '2024-12-07 22:56:25');
+INSERT INTO service.status_shipment (id, status_name, created_at)
+VALUES (2, 'delivered', '2024-12-07 22:56:25');
+INSERT INTO service.status_shipment (id, status_name, created_at)
+VALUES (3, 'error', '2024-12-07 22:56:25');
 
 -- service tables
 create table admin

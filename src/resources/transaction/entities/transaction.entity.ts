@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { PaymentEntity } from '@/resources/payment/entities/payment.entity';
 import { ProductEntity } from '@/resources/product/entities/product.entity';
+import { UserEntity } from '@/resources/user/entities/user.entity';
 
 @Entity({ name: 'transaction' })
 export class TransactionEntity {
@@ -32,6 +33,9 @@ export class TransactionEntity {
   @OneToOne(() => PaymentEntity, (payment) => payment.transaction)
   @JoinColumn({ name: 'payment_id' })
   payment: PaymentEntity;
+  @ManyToOne(() => UserEntity)
+  @JoinColumn({ name: 'user_id' })
+  user: UserEntity;
   @ManyToMany(() => ProductEntity)
   @JoinTable({
     name: 'transaction_product',

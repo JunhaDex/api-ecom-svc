@@ -126,3 +126,25 @@ export interface CourierUpdateInput {
   courierName?: string;
   apiUrl?: string;
 }
+
+export interface Transaction {
+  id: number;
+  paymentId: number;
+  txName: string;
+  txNote: string;
+  userId: number;
+  status: number;
+  createdAt: Date;
+  updatedAt: Date;
+  payment?: Payment;
+  user?: User;
+  products?: Product[];
+}
+
+export interface TransactionCreateInput {
+  issuer: User;
+  products: Product[];
+  payment: PaymentCreateInput;
+  txName: string;
+  txNote: string;
+}
