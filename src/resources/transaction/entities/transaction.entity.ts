@@ -2,15 +2,15 @@ import {
   Column,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { PaymentEntity } from '@/resources/payment/entities/payment.entity';
 import { ProductEntity } from '@/resources/product/entities/product.entity';
 import { UserEntity } from '@/resources/user/entities/user.entity';
+import { ShipmentEntity } from '@/resources/shipment/entities/shipment.entity';
 
 @Entity({ name: 'transaction' })
 export class TransactionEntity {
@@ -36,19 +36,13 @@ export class TransactionEntity {
   @ManyToOne(() => UserEntity)
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;
-  @ManyToMany(() => ProductEntity)
-  @JoinTable({
-    name: 'transaction_product',
-    joinColumn: {
-      name: 'tx_id',
-      referencedColumnName: 'id',
-    },
-    inverseJoinColumn: {
-      name: 'product_id',
-      referencedColumnName: 'id',
-    },
-  })
-  products: ProductEntity[];
+  @OneToOne(() => ShipmentEntity, (shipment) => shipment.transaction)
+  shipment?: ShipmentEntity;
+  @OneToMany(
+    () => TransactionProductEntity,
+    (txProduct) => txProduct.transaction,
+  )
+  products: TransactionProductEntity[];
 }
 
 @Entity({ name: 'transaction_product' })

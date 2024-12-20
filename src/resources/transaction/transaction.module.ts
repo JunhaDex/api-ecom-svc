@@ -1,9 +1,27 @@
 import { Module } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { TransactionController } from './transaction.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import {
+  TransactionEntity,
+  TransactionProductEntity,
+} from '@/resources/transaction/entities/transaction.entity';
+import { PaymentService } from '@/resources/payment/payment.service';
+import { ShipmentService } from '@/resources/shipment/shipment.service';
+import { PaymentEntity } from '@/resources/payment/entities/payment.entity';
+import { ShipmentEntity } from '@/resources/shipment/entities/shipment.entity';
 
 @Module({
+  imports: [
+    TypeOrmModule.forFeature([
+      TransactionEntity,
+      TransactionProductEntity,
+      PaymentEntity,
+      ShipmentEntity,
+    ]),
+  ],
   controllers: [TransactionController],
-  providers: [TransactionService],
+  providers: [TransactionService, PaymentService, ShipmentService],
+  exports: [TransactionService],
 })
 export class TransactionModule {}

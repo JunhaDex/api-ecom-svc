@@ -3,9 +3,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CourierEntity } from '@/resources/shipment/entities/courier.entity';
+import { TransactionEntity } from '@/resources/transaction/entities/transaction.entity';
 
 @Entity({ name: 'shipment' })
 export class ShipmentEntity {
@@ -32,4 +34,7 @@ export class ShipmentEntity {
   @ManyToOne(() => CourierEntity)
   @JoinColumn({ name: 'courier_id' })
   courier: CourierEntity;
+  @OneToOne(() => TransactionEntity, (transaction) => transaction.shipment)
+  @JoinColumn({ name: 'tx_id' })
+  transaction: TransactionEntity;
 }

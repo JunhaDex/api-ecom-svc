@@ -14,6 +14,16 @@ import { UserService } from '@/resources/user/user.service';
 import { UserEntity } from '@/resources/user/entities/user.entity';
 import { GroupService } from '@/resources/user/group.service';
 import { UserGroupEntity } from '@/resources/user/entities/group.entity';
+import { TransactionController } from '@/resources/admin/transaction.controller';
+import { TransactionService } from '@/resources/transaction/transaction.service';
+import { PaymentService } from '@/resources/payment/payment.service';
+import { ShipmentService } from '@/resources/shipment/shipment.service';
+import { PaymentEntity } from '@/resources/payment/entities/payment.entity';
+import { ShipmentEntity } from '@/resources/shipment/entities/shipment.entity';
+import {
+  TransactionEntity,
+  TransactionProductEntity,
+} from '@/resources/transaction/entities/transaction.entity';
 
 @Module({
   imports: [
@@ -23,9 +33,26 @@ import { UserGroupEntity } from '@/resources/user/entities/group.entity';
       ProductEntity,
       UserGroupEntity,
       UserGroupProductEntity,
+      TransactionEntity,
+      TransactionProductEntity,
+      PaymentEntity,
+      ShipmentEntity,
     ]),
   ],
-  controllers: [AdminController, AdminProductController, AdminUserController],
-  providers: [AdminService, ProductService, UserService, GroupService],
+  controllers: [
+    AdminController,
+    AdminProductController,
+    AdminUserController,
+    TransactionController,
+  ],
+  providers: [
+    AdminService,
+    ProductService,
+    UserService,
+    GroupService,
+    TransactionService,
+    PaymentService,
+    ShipmentService,
+  ],
 })
 export class AdminModule {}

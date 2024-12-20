@@ -138,13 +138,67 @@ export interface Transaction {
   updatedAt: Date;
   payment?: Payment;
   user?: User;
-  products?: Product[];
+  products?: {
+    product: Product;
+    count: number;
+    price: number;
+  }[];
+}
+
+export interface TxAdminItem {
+  id: number;
+  txName: string;
+  txNote: string;
+  status: number;
+  payment: Payment;
+  user: {
+    id: number;
+    userId: string;
+    branchName: string;
+    branchManager: string;
+    branchContact: string;
+  };
+  products?: {
+    product: Product;
+    count: number;
+    price: number;
+  }[];
+  shipment?: Shipment;
+  createdAt: Date;
 }
 
 export interface TransactionCreateInput {
   issuer: User;
-  products: Product[];
+  products: {
+    item: Product;
+    quantity: number;
+  }[];
   payment: PaymentCreateInput;
   txName: string;
   txNote: string;
+}
+
+export interface Shipment {
+  id: number;
+  txId: number;
+  courierId: number;
+  address: string;
+  recipientName: string;
+  recipientPhone: string;
+  trackingNo: string;
+  status: number;
+  createdAt: Date;
+  updatedAt: Date;
+  courier?: Courier;
+  transaction?: Transaction;
+}
+
+export interface ShipmentCreateInput {
+  txId: number;
+  courierId: number;
+  address: string;
+  recipientName: string;
+  recipientPhone: string;
+  trackingNo: string;
+  status?: number;
 }
