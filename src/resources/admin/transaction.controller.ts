@@ -1,4 +1,15 @@
-import { Controller, Get, HttpStatus, Query, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Query,
+  Res,
+} from '@nestjs/common';
 import { BaseController } from '@/resources/base.controller';
 import { TransactionService } from '@/resources/transaction/transaction.service';
 
@@ -24,4 +35,21 @@ export class TransactionController extends BaseController {
       .code(HttpStatus.OK)
       .send(this.formatResponse(HttpStatus.OK, result));
   }
+
+  @Put(':id/shipment')
+  async updateTxShipment(@Query() query: any, @Res() res: any) {
+  }
+
+  @Post('courier/new')
+  async createCourier(@Body() body: any, @Res() res: any) {}
+
+  @Put('courier/:id')
+  async updateCourier(
+    @Param('id') id: number,
+    @Body() body: any,
+    @Res() res: any,
+  ) {}
+
+  @Delete('courier/:id')
+  async deleteCourier(@Param('id') id: number, @Res() res: any) {}
 }

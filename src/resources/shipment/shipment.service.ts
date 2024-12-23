@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ShipmentEntity } from '@/resources/shipment/entities/shipment.entity';
 import { Repository } from 'typeorm';
-import { ShipmentCreateInput } from '@/types/admin.type';
+import { Shipment, ShipmentCreateInput } from '@/types/admin.type';
+import { Paginate, SvcQuery } from '@/types/general.type';
 
 @Injectable()
 export class ShipmentService {

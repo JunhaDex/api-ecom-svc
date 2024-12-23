@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaymentEntity } from '@/resources/payment/entities/payment.entity';
 import { EntityManager, Repository } from 'typeorm';
-import { PaymentCreateInput } from '@/types/admin.type';
+import { Payment, PaymentCreateInput } from '@/types/admin.type';
+import { Paginate, SvcQuery } from '@/types/general.type';
 
 @Injectable()
 export class PaymentService {
