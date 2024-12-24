@@ -1,3 +1,15 @@
+POST http://localhost:3000/api/v1/admin/user/new
+Content-Type: application/json
+
+{
+  "userId": "user",
+  "pwd": "pwd",
+  "branchName": "branchName",
+  "branchManager": "branchManager",
+  "branchContact": "branchContact"
+}
+
+###
 GET http://localhost:3000/api/v1/admin/tx/list
 Accept: application/json
 
