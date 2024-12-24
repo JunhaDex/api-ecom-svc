@@ -36,4 +36,16 @@ export class PaymentService {
     }
     await this.paymentRepository.save(payment);
   }
+
+  async getPaymentList(options?: SvcQuery): Promise<Paginate<Payment>> {
+    return {
+      list: [],
+      meta: {
+        pageSize: 0,
+        pageNo: 0,
+        totalPage: 0,
+        totalCount: 0,
+      },
+    };
+  }
 }

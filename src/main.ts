@@ -24,6 +24,9 @@ async function bootstrap() {
     }),
     {
       bodyParser: true,
+      cors: {
+        origin: '*',
+      },
     },
   );
   await app.register(userAgent);
