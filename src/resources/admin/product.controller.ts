@@ -2,9 +2,11 @@ import { BaseController } from '@/resources/base.controller';
 import {
   Body,
   Controller,
+  Get,
   HttpStatus,
   Logger,
   Post,
+  Query,
   Res,
 } from '@nestjs/common';
 import { ProductService } from '@/resources/product/product.service';
@@ -36,5 +38,26 @@ export class AdminProductController extends BaseController {
       }
     }
     return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
+  }
+
+  @Get('list')
+  async getProducts(@Query() query: any, @Res() res: any) {
+    const options = this.transferData(query, {
+      must: [],
+      optional: ['page', 'size', 'by_id', 'by_branch'],
+    });
+    const result = await this.productService.getProductList({
+      page: {
+        pageNo: options.page ?? 1,
+        pageSize: options.size ?? 10,
+      },
+      search: {
+        userId: options.by_id,
+        branchName: options.by_branch,
+      },
+    });
+    return res
+      .code(HttpStatus.OK)
+      .send(this.formatResponse(HttpStatus.OK, result));
   }
 }

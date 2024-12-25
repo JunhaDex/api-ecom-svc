@@ -47,7 +47,6 @@ export class ProductService {
       }, {} as any);
     }
     const [list, total] = await this.productRepo.findAndCount({
-      select: ['id', 'productName', 'description', 'productPrice', 'status'],
       where: whereClause as any,
       take,
       skip,
