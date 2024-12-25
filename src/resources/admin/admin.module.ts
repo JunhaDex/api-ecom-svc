@@ -4,6 +4,7 @@ import { AdminController } from './admin.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminUserEntity } from '@/resources/admin/entities/admin.entity';
 import { AdminProductController } from '@/resources/admin/product.controller';
+import { AdminCourierController } from '@/resources/shipment/courier.controller';
 import { ProductService } from '@/resources/product/product.service';
 import {
   ProductEntity,
@@ -24,7 +25,8 @@ import {
   TransactionEntity,
   TransactionProductEntity,
 } from '@/resources/transaction/entities/transaction.entity';
-
+import { CourierService } from '@/resources/shipment/courier.service';
+import { CourierEntity } from '@/resources/shipment/entities/courier.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -37,6 +39,7 @@ import {
       TransactionProductEntity,
       PaymentEntity,
       ShipmentEntity,
+      CourierEntity,
     ]),
   ],
   controllers: [
@@ -44,6 +47,7 @@ import {
     AdminProductController,
     AdminUserController,
     TransactionController,
+    AdminCourierController,
   ],
   providers: [
     AdminService,
@@ -53,6 +57,7 @@ import {
     TransactionService,
     PaymentService,
     ShipmentService,
+    CourierService,
   ],
 })
 export class AdminModule {}
