@@ -13,6 +13,7 @@ Content-Type: application/json
 GET http://localhost:3000/api/v1/admin/tx/list
 Accept: application/json
 
+
 ###
 POST http://localhost:3000/api/v1/admin/user/group/1/product/add
 Content-Type: application/json
@@ -42,6 +43,8 @@ Accept: application/json
 GET http://localhost:3000/api/v1/admin/user/list
 Accept: application/json
 
+
+
 ###
 POST http://localhost:3000/api/v1/admin/user/group/new
 Content-Type: application/json
@@ -60,6 +63,10 @@ Content-Type: application/json
   "productPrice": 50000.12,
   "description": "product3 description"
 }
+
+###
+GET http://localhost:3000/api/v1/admin/product/list
+Accept: application/json
 
 ###
 GET http://localhost:3000/api/v1/admin/auth/list
