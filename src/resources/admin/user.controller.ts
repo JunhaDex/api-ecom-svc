@@ -15,6 +15,7 @@ import { UserService } from '@/resources/user/user.service';
 import { GroupService } from '@/resources/user/group.service';
 import {
   Product,
+  User,
   UserCreateInput,
   UserGroupCreateInput,
 } from '@/types/admin.type';
@@ -138,6 +139,45 @@ export class AdminUserController extends BaseController {
           .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
       }
     }
+  }
+
+  @Post('group/:id/user/add')
+  async addGroupUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: any,
+    @Res() res: any,
+  ) {
+    try {
+      const cleaned = this.transferData(body, {
+        must: ['users'],
+      });
+      if (Array.isArray(cleaned.users) && cleaned.users.length) {
+        const users = cleaned.users.map((product: any) => {
+          return this.transferData<User>(product, {
+            must: ['id', 'userId'],
+          }) as User;
+        });
+        await this.groupService.addGroupMember(id, users);
+      }
+    } catch (e) {
+      if (e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID) {
+        return res
+          .code(HttpStatus.BAD_REQUEST)
+          .send(this.formatResponse(HttpStatus.BAD_REQUEST));
+      } else if (
+        e.message === GroupService.GROUP_SERVICE_EXCEPTIONS.GROUP_NOT_FOUND
+      ) {
+        return res
+          .code(HttpStatus.NOT_FOUND)
+          .send(this.formatResponse(HttpStatus.NOT_FOUND));
+      } else {
+        Logger.error('Unhandled Error: ' + e.message);
+        return res
+          .code(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+      }
+    }
+    return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
   }
 
   @Post('group/:id/product/add')

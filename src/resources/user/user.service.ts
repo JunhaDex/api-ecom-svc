@@ -73,6 +73,7 @@ export class UserService {
         'status',
         'createdAt',
       ],
+      relations: ['userGroup'],
       where: whereClause as any,
       take,
       skip,
