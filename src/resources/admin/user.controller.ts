@@ -2,6 +2,7 @@ import { BaseController } from '@/resources/base.controller';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Logger,
@@ -15,6 +16,7 @@ import { UserService } from '@/resources/user/user.service';
 import { GroupService } from '@/resources/user/group.service';
 import {
   Product,
+  User,
   UserCreateInput,
   UserGroupCreateInput,
 } from '@/types/admin.type';
@@ -58,8 +60,15 @@ export class AdminUserController extends BaseController {
     try {
       const newGroup = this.transferData<UserGroupCreateInput>(body, {
         must: ['groupName', 'description'],
+        optional: ['products'],
       });
       await this.groupService.createGroup(newGroup as UserGroupCreateInput);
+      if (newGroup.products) {
+        const group = await this.groupService.getGroupByName(
+          newGroup.groupName,
+        );
+        await this.groupService.addGroupProduct(group.id, newGroup.products);
+      }
     } catch (e) {
       if (
         e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID ||
@@ -140,6 +149,45 @@ export class AdminUserController extends BaseController {
     }
   }
 
+  @Post('group/:id/user/add')
+  async addGroupUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: any,
+    @Res() res: any,
+  ) {
+    try {
+      const cleaned = this.transferData(body, {
+        must: ['users'],
+      });
+      if (Array.isArray(cleaned.users) && cleaned.users.length) {
+        const users = cleaned.users.map((product: any) => {
+          return this.transferData<User>(product, {
+            must: ['id', 'userId'],
+          }) as User;
+        });
+        await this.groupService.addGroupMember(id, users);
+      }
+    } catch (e) {
+      if (e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID) {
+        return res
+          .code(HttpStatus.BAD_REQUEST)
+          .send(this.formatResponse(HttpStatus.BAD_REQUEST));
+      } else if (
+        e.message === GroupService.GROUP_SERVICE_EXCEPTIONS.GROUP_NOT_FOUND
+      ) {
+        return res
+          .code(HttpStatus.NOT_FOUND)
+          .send(this.formatResponse(HttpStatus.NOT_FOUND));
+      } else {
+        Logger.error('Unhandled Error: ' + e.message);
+        return res
+          .code(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+      }
+    }
+    return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
+  }
+
   @Post('group/:id/product/add')
   async addGroupProduct(
     @Param('id', ParseIntPipe) id: number,
@@ -170,6 +218,37 @@ export class AdminUserController extends BaseController {
         return res
           .code(HttpStatus.NOT_FOUND)
           .send(this.formatResponse(HttpStatus.NOT_FOUND));
+      } else {
+        Logger.error('Unhandled Error: ' + e.message);
+        return res
+          .code(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+      }
+    }
+    return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
+  }
+
+  @Delete(':id/remove')
+  async removeUser(@Param('id', ParseIntPipe) id: number, @Res() res: any) {
+    await this.userService.deleteUser(id);
+    return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
+  }
+
+  @Delete('group/:id/remove')
+  async removeGroup(@Param('id', ParseIntPipe) id: number, @Res() res: any) {
+    try {
+      await this.groupService.deleteGroup(id);
+    } catch (e) {
+      if (e.message === GroupService.GROUP_SERVICE_EXCEPTIONS.GROUP_NOT_FOUND) {
+        return res
+          .code(HttpStatus.NOT_FOUND)
+          .send(this.formatResponse(HttpStatus.NOT_FOUND));
+      } else if (
+        e.message === GroupService.GROUP_SERVICE_EXCEPTIONS.GROUP_UNAVAILABLE
+      ) {
+        return res
+          .code(HttpStatus.BAD_REQUEST)
+          .send(this.formatResponse(HttpStatus.BAD_REQUEST));
       } else {
         Logger.error('Unhandled Error: ' + e.message);
         return res

@@ -100,6 +100,16 @@ export class GroupService {
     throw new Error(this.Exceptions.GROUP_NOT_FOUND);
   }
 
+  async getGroupByName(groupName: string) {
+    const group = await this.groupRepo.findOne({
+      where: { groupName },
+    });
+    if (group) {
+      return group;
+    }
+    throw new Error(this.Exceptions.GROUP_NOT_FOUND);
+  }
+
   async updateGroup(index: number, params: UserGroupUpdateInput) {
     const group = await this.groupRepo.findOne({
       where: { id: index },
