@@ -2,6 +2,7 @@ import { BaseController } from '@/resources/base.controller';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Logger,
@@ -59,8 +60,15 @@ export class AdminUserController extends BaseController {
     try {
       const newGroup = this.transferData<UserGroupCreateInput>(body, {
         must: ['groupName', 'description'],
+        optional: ['products'],
       });
       await this.groupService.createGroup(newGroup as UserGroupCreateInput);
+      if (newGroup.products) {
+        const group = await this.groupService.getGroupByName(
+          newGroup.groupName,
+        );
+        await this.groupService.addGroupProduct(group.id, newGroup.products);
+      }
     } catch (e) {
       if (
         e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID ||
@@ -210,6 +218,37 @@ export class AdminUserController extends BaseController {
         return res
           .code(HttpStatus.NOT_FOUND)
           .send(this.formatResponse(HttpStatus.NOT_FOUND));
+      } else {
+        Logger.error('Unhandled Error: ' + e.message);
+        return res
+          .code(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+      }
+    }
+    return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
+  }
+
+  @Delete(':id/remove')
+  async removeUser(@Param('id', ParseIntPipe) id: number, @Res() res: any) {
+    await this.userService.deleteUser(id);
+    return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
+  }
+
+  @Delete('group/:id/remove')
+  async removeGroup(@Param('id', ParseIntPipe) id: number, @Res() res: any) {
+    try {
+      await this.groupService.deleteGroup(id);
+    } catch (e) {
+      if (e.message === GroupService.GROUP_SERVICE_EXCEPTIONS.GROUP_NOT_FOUND) {
+        return res
+          .code(HttpStatus.NOT_FOUND)
+          .send(this.formatResponse(HttpStatus.NOT_FOUND));
+      } else if (
+        e.message === GroupService.GROUP_SERVICE_EXCEPTIONS.GROUP_UNAVAILABLE
+      ) {
+        return res
+          .code(HttpStatus.BAD_REQUEST)
+          .send(this.formatResponse(HttpStatus.BAD_REQUEST));
       } else {
         Logger.error('Unhandled Error: ' + e.message);
         return res

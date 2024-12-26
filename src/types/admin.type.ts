@@ -56,6 +56,7 @@ export interface UserGroup {
 export interface UserGroupCreateInput {
   groupName: string;
   description: string;
+  products?: Product[];
 }
 
 export interface UserGroupUpdateInput {
