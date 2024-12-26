@@ -1,10 +1,10 @@
 import { BaseController } from '@/resources/base.controller';
 import {
   Body,
-  Controller,
+  Controller, Delete,
   Get,
   HttpStatus,
-  Logger,
+  Logger, Param, ParseIntPipe,
   Post,
   Query,
   Res,
@@ -59,5 +59,11 @@ export class AdminProductController extends BaseController {
     return res
       .code(HttpStatus.OK)
       .send(this.formatResponse(HttpStatus.OK, result));
+  }
+
+  @Delete(':id/remove')
+  async removeProduct(@Param('id', ParseIntPipe) id: number, @Res() res: any) {
+    await this.productService.deleteProduct(id);
+    return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
   }
 }
