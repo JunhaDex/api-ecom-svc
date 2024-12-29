@@ -1,9 +1,9 @@
 import {
   Body,
-  Controller,
+  Controller, Delete,
   Get,
   HttpStatus,
-  Logger,
+  Logger, Param, ParseIntPipe,
   Post,
   Query,
   Res,
@@ -22,7 +22,7 @@ export class AdminController extends BaseController {
   async registerAdmin(@Body() body: any, @Res() res: any) {
     try {
       const newAdmin = this.transferData<AdminCreateInput>(body, {
-        must: ['userId', 'pwd', 'name'],
+        must: ['adminId', 'pwd', 'name'],
       });
       await this.adminService.createAdmin(newAdmin as AdminCreateInput);
     } catch (e) {
@@ -62,5 +62,11 @@ export class AdminController extends BaseController {
     return res
       .code(HttpStatus.OK)
       .send(this.formatResponse(HttpStatus.OK, result));
+  }
+
+  @Delete(':id/remove')
+  async removeAdmin(@Param('id', ParseIntPipe) id: number, @Res() res: any) {
+    await this.adminService.deleteAdmin(id);
+    return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
   }
 }

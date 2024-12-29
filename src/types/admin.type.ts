@@ -6,7 +6,7 @@ export interface AdminUser {
 }
 
 export interface AdminCreateInput {
-  userId: string;
+  adminId: string;
   pwd: string;
   name: string;
 }

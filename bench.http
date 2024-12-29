@@ -91,7 +91,7 @@ POST http://localhost:3000/api/v1/admin/auth/new
 Content-Type: application/json
 
 {
-  "userId": "admin",
+  "adminId": "admin",
   "pwd": "admin",
   "name": "admin"
 }

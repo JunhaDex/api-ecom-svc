@@ -25,7 +25,7 @@ export class AdminService {
   async createAdmin(newAdmin: AdminCreateInput): Promise<void> {
     const duplicate = await this.adminRepo.findOne({
       where: {
-        adminId: newAdmin.userId,
+        adminId: newAdmin.adminId,
       },
     });
     if (!duplicate) {
@@ -33,7 +33,7 @@ export class AdminService {
       const salt = await bcrypt.genSalt(rnd);
       const pass = await bcrypt.hash(newAdmin.pwd, salt);
       const admin = this.adminRepo.create({
-        adminId: newAdmin.userId,
+        adminId: newAdmin.adminId,
         pwd: pass,
         name: newAdmin.name,
       });
