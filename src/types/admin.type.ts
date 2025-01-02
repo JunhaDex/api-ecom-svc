@@ -11,11 +11,6 @@ export interface AdminCreateInput {
   name: string;
 }
 
-export interface LoginInput {
-  userId: string;
-  password: string;
-}
-
 export interface User {
   id: number;
   userId: string;
@@ -23,6 +18,7 @@ export interface User {
   branchManager: string;
   branchContact: string;
   status: number;
+  groupId: number;
   createdAt: Date;
   updatedAt: Date;
   userGroup?: UserGroup;
@@ -79,6 +75,19 @@ export interface ProductCreateInput {
   description: string;
   imageUrls: string[];
   productPrice: number;
+}
+
+export interface Notice {
+  id: number;
+  title: string;
+  content: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface NoticeCreateInput {
+  title: string;
+  content: string;
 }
 
 export interface ProductUpdateInput {

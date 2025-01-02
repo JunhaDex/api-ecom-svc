@@ -10,6 +10,7 @@ import { PaymentModule } from '@/resources/payment/payment.module';
 import { ShipmentModule } from '@/resources/shipment/shipment.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { JwtModule } from '@nestjs/jwt';
+import { NoticeModule } from '@/resources/notice/notice.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { JwtModule } from '@nestjs/jwt';
     TransactionModule,
     PaymentModule,
     ShipmentModule,
+    NoticeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -4,7 +4,7 @@ import {
   TransactionEntity,
   TransactionProductEntity,
 } from '@/resources/transaction/entities/transaction.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import {
   ShipmentCreateInput,
   TransactionCreateInput,
@@ -14,6 +14,7 @@ import { PaymentService } from '@/resources/payment/payment.service';
 import { PaymentEntity } from '@/resources/payment/entities/payment.entity';
 import { Paginate, SvcQuery } from '@/types/general.type';
 import { ShipmentService } from '@/resources/shipment/shipment.service';
+import { getMonthRange } from '@/utils/index.util';
 
 @Injectable()
 export class TransactionService {
@@ -142,5 +143,27 @@ export class TransactionService {
       return;
     }
     throw new Error(this.Exceptions.TRANSACTION_NOT_FOUND);
+  }
+
+  async getUserTxSummary(
+    userId: number,
+  ): Promise<{ count: number; cost: number; in_transit: number }> {
+    const range = getMonthRange();
+    const [monTx, txCount] = await this.txRepo.findAndCount({
+      relations: ['payment'],
+      where: { userId, createdAt: Between(range.first, range.last) },
+    });
+    const transit = await this.txRepo.count({
+      relations: ['shipment'],
+      where: { userId, shipment: { status: 1 } },
+    });
+    const spend = monTx.reduce((acc, tx) => {
+      return acc + tx.payment.balanceAmount;
+    }, 0);
+    return {
+      count: txCount,
+      cost: spend,
+      in_transit: transit,
+    };
   }
 }

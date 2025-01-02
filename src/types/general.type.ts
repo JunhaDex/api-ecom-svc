@@ -22,3 +22,8 @@ export interface DataTransfer<T> {
   must: (keyof T)[];
   optional?: (keyof T)[];
 }
+
+export interface LoginInput {
+  userId: string;
+  password: string;
+}

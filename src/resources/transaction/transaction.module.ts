@@ -10,6 +10,8 @@ import { PaymentService } from '@/resources/payment/payment.service';
 import { ShipmentService } from '@/resources/shipment/shipment.service';
 import { PaymentEntity } from '@/resources/payment/entities/payment.entity';
 import { ShipmentEntity } from '@/resources/shipment/entities/shipment.entity';
+import { UserService } from '@/resources/user/user.service';
+import { UserEntity } from '@/resources/user/entities/user.entity';
 
 @Module({
   imports: [
@@ -18,10 +20,11 @@ import { ShipmentEntity } from '@/resources/shipment/entities/shipment.entity';
       TransactionProductEntity,
       PaymentEntity,
       ShipmentEntity,
+      UserEntity,
     ]),
   ],
   controllers: [TransactionController],
-  providers: [TransactionService, PaymentService, ShipmentService],
+  providers: [TransactionService, PaymentService, ShipmentService, UserService],
   exports: [TransactionService],
 })
 export class TransactionModule {}

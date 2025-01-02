@@ -248,6 +248,17 @@ create table shipment
         foreign key (tx_id) references transaction (id)
 );
 
+create table notice
+(
+    id         int unsigned auto_increment
+        primary key,
+    title      varchar(255)                        null,
+    content    text                                null,
+    created_at timestamp default CURRENT_TIMESTAMP not null,
+    updated_at datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+);
+
+
 
 
 

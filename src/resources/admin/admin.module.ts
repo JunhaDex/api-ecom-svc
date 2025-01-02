@@ -27,6 +27,10 @@ import {
 } from '@/resources/transaction/entities/transaction.entity';
 import { CourierService } from '@/resources/shipment/courier.service';
 import { CourierEntity } from '@/resources/shipment/entities/courier.entity';
+import { NoticeController } from '@/resources/admin/notice.controller';
+import { NoticeService } from '@/resources/notice/notice.service';
+import { NoticeEntity } from '@/resources/notice/entities/notice.entity';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -40,6 +44,7 @@ import { CourierEntity } from '@/resources/shipment/entities/courier.entity';
       PaymentEntity,
       ShipmentEntity,
       CourierEntity,
+      NoticeEntity,
     ]),
   ],
   controllers: [
@@ -48,6 +53,7 @@ import { CourierEntity } from '@/resources/shipment/entities/courier.entity';
     AdminUserController,
     TransactionController,
     AdminCourierController,
+    NoticeController,
   ],
   providers: [
     AdminService,
@@ -58,6 +64,7 @@ import { CourierEntity } from '@/resources/shipment/entities/courier.entity';
     PaymentService,
     ShipmentService,
     CourierService,
+    NoticeService,
   ],
 })
 export class AdminModule {}

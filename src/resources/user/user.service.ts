@@ -11,6 +11,7 @@ import {
   UserUpdateInput,
 } from '@/types/admin.type';
 import { Paginate, SvcQuery } from '@/types/general.type';
+import { UserCache } from '@/types/service.type';
 
 @Injectable()
 export class UserService {
@@ -102,6 +103,7 @@ export class UserService {
         branchManager: user.branchManager,
         branchContact: user.branchContact,
         status: user.status,
+        groupId: user.groupId,
         createdAt: user.createdAt,
         userGroup: user.userGroup as UserGroup,
       } as User;
@@ -109,7 +111,10 @@ export class UserService {
     throw new Error(this.Exceptions.USER_NOT_FOUND);
   }
 
-  async loginUser(params: { userId: string; pwd: string }) {
+  async loginUser(params: {
+    userId: string;
+    pwd: string;
+  }): Promise<{ accessToken: string; user: UserCache }> {
     const user = await this.userRepo.findOne({
       where: { userId: params.userId },
     });
@@ -121,6 +126,13 @@ export class UserService {
         };
         return {
           accessToken: this.jwtService.sign(payload, { expiresIn: '1d' }),
+          user: {
+            id: user.id,
+            userId: user.userId,
+            branchName: user.branchName,
+            branchManager: user.branchManager,
+            branchContact: user.branchContact,
+          },
         };
       }
     }

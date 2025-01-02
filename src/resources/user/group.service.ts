@@ -110,6 +110,34 @@ export class GroupService {
     throw new Error(this.Exceptions.GROUP_NOT_FOUND);
   }
 
+  async getGroupProductList(
+    index: number,
+    options?: SvcQuery,
+  ): Promise<Paginate<Product>> {
+    const take = options?.page?.pageSize ?? 10;
+    const skip = ((options?.page?.pageNo ?? 1) - 1) * take;
+    const [list, total] = await this.groupProductRepo.findAndCount({
+      where: {
+        userGroupId: index,
+        product: {
+          status: 1,
+        },
+      },
+      relations: ['product'],
+      take,
+      skip,
+    });
+    return {
+      list: list.map((groupProduct) => groupProduct.product),
+      meta: {
+        pageNo: options?.page?.pageNo ?? 1,
+        pageSize: take,
+        totalCount: total,
+        totalPage: Math.ceil(total / take),
+      },
+    };
+  }
+
   async updateGroup(index: number, params: UserGroupUpdateInput) {
     const group = await this.groupRepo.findOne({
       where: { id: index },
