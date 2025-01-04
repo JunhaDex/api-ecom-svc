@@ -6,8 +6,6 @@ export class PaymentEntity {
   @PrimaryGeneratedColumn()
   id: number;
   @Column()
-  sessionKey: string;
-  @Column()
   payMethod: string;
   @Column()
   paymentKey: string;

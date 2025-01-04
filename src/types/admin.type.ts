@@ -99,7 +99,6 @@ export interface ProductUpdateInput {
 
 export interface Payment {
   id: number;
-  sessionKey: string;
   payMethod: string;
   paymentKey: string;
   orderId: string;
@@ -111,7 +110,6 @@ export interface Payment {
 }
 
 export interface PaymentCreateInput {
-  sessionKey: string;
   payMethod: string;
   paymentKey: string;
   orderId: string;

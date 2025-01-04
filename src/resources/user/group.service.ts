@@ -22,6 +22,7 @@ export class GroupService {
     GROUP_EXISTS: 'GROUP_EXISTS',
     GROUP_NOT_FOUND: 'GROUP_NOT_FOUND',
     GROUP_UNAVAILABLE: 'GROUP_UNAVAILABLE',
+    GROUP_ACCESS_DENIED: 'GROUP_ACCESS_DENIED',
   } as const;
   private readonly Exceptions = GroupService.GROUP_SERVICE_EXCEPTIONS;
 
@@ -136,6 +137,24 @@ export class GroupService {
         totalPage: Math.ceil(total / take),
       },
     };
+  }
+
+  async checkGroupProductAccess(
+    index: number,
+    productId: number,
+  ): Promise<boolean> {
+    const group = await this.groupRepo.findOne({
+      where: { id: index },
+      relations: ['products'],
+    });
+    if (group) {
+      const exists = group.products.find((product) => product.id === productId);
+      if (exists) {
+        return true;
+      }
+      throw new Error(this.Exceptions.GROUP_ACCESS_DENIED);
+    }
+    throw new Error(this.Exceptions.GROUP_NOT_FOUND);
   }
 
   async updateGroup(index: number, params: UserGroupUpdateInput) {

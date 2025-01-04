@@ -30,6 +30,7 @@ import { CourierEntity } from '@/resources/shipment/entities/courier.entity';
 import { NoticeController } from '@/resources/admin/notice.controller';
 import { NoticeService } from '@/resources/notice/notice.service';
 import { NoticeEntity } from '@/resources/notice/entities/notice.entity';
+import { PaySessionEntity } from '@/resources/payment/entities/pay_session.entity';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { NoticeEntity } from '@/resources/notice/entities/notice.entity';
       UserGroupProductEntity,
       TransactionEntity,
       TransactionProductEntity,
+      PaySessionEntity,
       PaymentEntity,
       ShipmentEntity,
       CourierEntity,

@@ -10,6 +10,8 @@ import { UserService } from '@/resources/user/user.service';
 import { UserEntity } from '@/resources/user/entities/user.entity';
 import { GroupService } from '@/resources/user/group.service';
 import { UserGroupEntity } from '@/resources/user/entities/group.entity';
+import { CartService } from '@/resources/product/cart.service';
+import { CartEntity } from '@/resources/product/entities/cart.entity';
 
 @Module({
   imports: [
@@ -18,10 +20,11 @@ import { UserGroupEntity } from '@/resources/user/entities/group.entity';
       UserEntity,
       UserGroupEntity,
       UserGroupProductEntity,
+      CartEntity,
     ]),
   ],
   controllers: [ProductController],
-  providers: [ProductService, UserService, GroupService],
+  providers: [ProductService, UserService, GroupService, CartService],
   exports: [ProductService],
 })
 export class ProductModule {}

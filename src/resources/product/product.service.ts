@@ -6,7 +6,7 @@ import {
 } from '@/types/admin.type';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductEntity } from '@/resources/product/entities/product.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Paginate, SvcQuery } from '@/types/general.type';
 
 @Injectable()
@@ -68,6 +68,13 @@ export class ProductService {
       return product;
     }
     throw new Error(this.Exceptions.PRODUCT_NOT_FOUND);
+  }
+
+  async getManyProducts(indexes: number[]): Promise<Product[]> {
+    return await this.productRepo.find({
+      where: { id: In(indexes) },
+      order: { id: 'ASC' },
+    });
   }
 
   async updateProduct(

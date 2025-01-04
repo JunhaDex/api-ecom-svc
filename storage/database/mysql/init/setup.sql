@@ -164,21 +164,32 @@ create index cart_user_product_product_id_index
 create index cart_user_product_user_id_index
     on cart_user_product (user_id);
 
+create table pay_session
+(
+    id         int unsigned auto_increment
+        primary key,
+    session_id char(36)                         not null comment 'uuid_v4',
+    amount     decimal(10, 2)                      not null,
+    created_at timestamp default CURRENT_TIMESTAMP not null,
+    updated_at datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    constraint pay_session_unique
+        unique (session_id)
+);
+
 create table payment
 (
     id             int unsigned auto_increment
         primary key,
-    session_key    varchar(255)                        not null comment 'uuidv4',
-    pay_method     varchar(255)                        null,
-    payment_key    varchar(255)                        null comment 'from toss',
-    order_id       varchar(255)                        null comment 'from toss',
-    paid_amount    decimal(10, 2)                      null comment 'from toss',
-    balance_amount decimal(10, 2)                      null comment 'when canceled',
-    paid_at        datetime                            null,
+    pay_method     varchar(255)                        not null,
+    payment_key    varchar(255)                        not null comment 'from toss',
+    order_id       char(36)                            not null comment 'from toss uuid_v4',
+    paid_amount    decimal(10, 2)                      not null comment 'from toss',
+    balance_amount decimal(10, 2)                      not null comment 'when canceled',
+    paid_at        datetime                            not null,
     created_at     timestamp default CURRENT_TIMESTAMP not null,
     updated_at     datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    constraint payment_session_unique
-        unique (session_key)
+    constraint payment_order_id_unique
+        unique (order_id)
 );
 
 create table transaction

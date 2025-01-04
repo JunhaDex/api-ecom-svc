@@ -37,6 +37,7 @@ export class TransactionService {
   async createTransaction(transaction: TransactionCreateInput) {
     await this.txRepo.manager.transaction(async (txManager) => {
       const payment = (await this.paymentSvc.createPayment(
+        transaction.issuer.id,
         transaction.payment,
         txManager,
       )) as PaymentEntity;
@@ -65,7 +66,12 @@ export class TransactionService {
     orderId: string;
     amount: string;
     paymentKey: string;
-  }) {}
+  }) {
+    const widgetSecretKey = '';
+    const encryptedSecretKey =
+      'Basic ' + Buffer.from(widgetSecretKey + ':').toString('base64');
+    //https://api.tosspayments.com/v1/payments/confirm
+  }
 
   async getTransactionList(options?: SvcQuery): Promise<Paginate<TxAdminItem>> {
     const searchOptions = ['status'];
