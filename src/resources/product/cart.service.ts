@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CartEntity } from '@/resources/product/entities/cart.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CartItem, CartItemInput } from '@/types/service.type';
 import { Paginate, SvcQuery } from '@/types/general.type';
 import { Product } from '@/types/admin.type';
@@ -88,5 +88,12 @@ export class CartService {
         await this.cartRepo.save(newItem);
       }
     }
+  }
+
+  async deleteCartItem(userId: number, productIds: number[]): Promise<void> {
+    const products = await this.cartRepo.find({
+      where: { userId, productId: In(productIds) },
+    });
+    await this.cartRepo.remove(products);
   }
 }

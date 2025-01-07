@@ -110,12 +110,14 @@ export interface Payment {
 }
 
 export interface PaymentCreateInput {
-  payMethod: string;
-  paymentKey: string;
   orderId: string;
   paidAmount: number;
-  balanceAmount: number;
   paidAt: Date;
+}
+
+export interface PaymentConfirmInput {
+  payMethod: string;
+  paymentKey: string;
 }
 
 export interface Courier {
@@ -176,7 +178,6 @@ export interface TxAdminItem {
 }
 
 export interface TransactionCreateInput {
-  issuer: User;
   products: {
     item: Product;
     quantity: number;
@@ -202,11 +203,12 @@ export interface Shipment {
 }
 
 export interface ShipmentCreateInput {
-  txId: number;
-  courierId: number;
+  orderId: string;
   address: string;
+  postalCode: string;
   recipientName: string;
   recipientPhone: string;
-  trackingNo: string;
+  courierId?: number;
+  trackingNo?: string;
   status?: number;
 }

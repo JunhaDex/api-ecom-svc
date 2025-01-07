@@ -6,20 +6,22 @@ import {
 } from '@/resources/transaction/entities/transaction.entity';
 import { Between, Repository } from 'typeorm';
 import {
-  ShipmentCreateInput,
+  Transaction,
   TransactionCreateInput,
   TxAdminItem,
 } from '@/types/admin.type';
 import { PaymentService } from '@/resources/payment/payment.service';
 import { PaymentEntity } from '@/resources/payment/entities/payment.entity';
 import { Paginate, SvcQuery } from '@/types/general.type';
-import { ShipmentService } from '@/resources/shipment/shipment.service';
 import { getMonthRange } from '@/utils/index.util';
+import { TossPayload } from '@/types/service.type';
+import axios from 'axios';
 
 @Injectable()
 export class TransactionService {
   static TRANSACTION_SERVICE_EXCEPTIONS = {
     TRANSACTION_NOT_FOUND: 'TRANSACTION_NOT_FOUND',
+    TX_EXPIRED: 'TX_EXPIRED',
   } as const;
 
   private readonly Exceptions =
@@ -27,17 +29,16 @@ export class TransactionService {
 
   constructor(
     private paymentSvc: PaymentService,
-    private shipmentSvc: ShipmentService,
     @InjectRepository(TransactionEntity)
     private txRepo: Repository<TransactionEntity>,
     @InjectRepository(TransactionProductEntity)
     private txProductRepo: Repository<TransactionProductEntity>,
   ) {}
 
-  async createTransaction(transaction: TransactionCreateInput) {
+  async createTransaction(userId: number, transaction: TransactionCreateInput) {
     await this.txRepo.manager.transaction(async (txManager) => {
+      // create unauthorized payment
       const payment = (await this.paymentSvc.createPayment(
-        transaction.issuer.id,
         transaction.payment,
         txManager,
       )) as PaymentEntity;
@@ -45,8 +46,8 @@ export class TransactionService {
         paymentId: payment.id,
         txName: transaction.txName,
         txNote: transaction.txNote,
-        userId: transaction.issuer.id,
-        status: 1,
+        userId: userId,
+        status: 2,
       });
       const txResult = await txManager.save(TransactionEntity, tx);
       const txProducts = transaction.products.map((product) => {
@@ -55,22 +56,44 @@ export class TransactionService {
           productId: product.item.id,
           count: product.quantity,
           price: product.item.productPrice,
-          status: 1,
+          status: 1, // for partial refund
         });
       });
       await txManager.save(TransactionProductEntity, txProducts);
     });
   }
 
-  async confirmTransaction(confirmToss: {
-    orderId: string;
-    amount: string;
-    paymentKey: string;
-  }) {
+  async confirmTransaction(userId: number, confirmToss: TossPayload) {
     const widgetSecretKey = '';
     const encryptedSecretKey =
       'Basic ' + Buffer.from(widgetSecretKey + ':').toString('base64');
-    //https://api.tosspayments.com/v1/payments/confirm
+    const tx = await this.getTransactionByOrderId(userId, confirmToss.orderId);
+    if (tx && tx.status === 2) {
+      const client = axios.create({
+        baseURL: 'https://api.tosspayments.com/v1/payments',
+        headers: {
+          Authorization: encryptedSecretKey,
+          'Content-Type': 'application/json',
+        },
+      });
+      const res = await client.post('confirm', confirmToss);
+      console.log(res);
+      await this.txRepo.manager.transaction(async (txManager) => {
+        await this.paymentSvc.updatePayment(
+          tx.payment.id,
+          {
+            paymentKey: confirmToss.paymentKey,
+            payMethod: res.data.method,
+          },
+          txManager,
+        );
+        await txManager.update(TransactionEntity, tx.id, {
+          status: 1,
+        });
+      });
+      return;
+    }
+    throw new Error(this.Exceptions.TX_EXPIRED);
   }
 
   async getTransactionList(options?: SvcQuery): Promise<Paginate<TxAdminItem>> {
@@ -132,24 +155,34 @@ export class TransactionService {
     };
   }
 
-  async updateTransactionShipment(
-    index: number,
-    params: ShipmentCreateInput,
-  ): Promise<void> {
-    const tx = await this.txRepo.findOne({
-      where: { id: index },
-      relations: ['shipment'],
+  async getTransactionByOrderId(
+    userId: number,
+    orderId: string,
+  ): Promise<Transaction> {
+    return await this.txRepo.findOne({
+      where: { userId, payment: { orderId } },
+      relations: ['payment'],
     });
-    if (tx) {
-      if (tx.shipment) {
-        await this.shipmentSvc.updateShipment(tx.shipment.id, params);
-      } else {
-        await this.shipmentSvc.createShipment({ ...params, txId: index });
-      }
-      return;
-    }
-    throw new Error(this.Exceptions.TRANSACTION_NOT_FOUND);
   }
+
+  // async updateTransactionShipment(
+  //   index: number,
+  //   params: ShipmentCreateInput,
+  // ): Promise<void> {
+  //   const tx = await this.txRepo.findOne({
+  //     where: { id: index },
+  //     relations: ['shipment'],
+  //   });
+  //   if (tx) {
+  //     if (tx.shipment) {
+  //       await this.shipmentSvc.updateShipment(tx.shipment.id, params);
+  //     } else {
+  //       await this.shipmentSvc.createShipment({ ...params, txId: index });
+  //     }
+  //     return;
+  //   }
+  //   throw new Error(this.Exceptions.TRANSACTION_NOT_FOUND);
+  // }
 
   async getUserTxSummary(
     userId: number,

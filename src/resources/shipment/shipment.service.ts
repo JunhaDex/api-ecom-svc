@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ShipmentEntity } from '@/resources/shipment/entities/shipment.entity';
 import { Repository } from 'typeorm';
-import { Shipment, ShipmentCreateInput } from '@/types/admin.type';
-import { Paginate, SvcQuery } from '@/types/general.type';
+import { ShipmentCreateInput } from '@/types/admin.type';
+import { TransactionService } from '@/resources/transaction/transaction.service';
 
 @Injectable()
 export class ShipmentService {
@@ -14,22 +14,35 @@ export class ShipmentService {
   private readonly Exceptions = ShipmentService.SHIPMENT_SERVICE_EXCEPTIONS;
 
   constructor(
+    private txSvc: TransactionService,
     @InjectRepository(ShipmentEntity)
     private shipmentRepository: Repository<ShipmentEntity>,
   ) {}
 
-  async createShipment(newShipment: ShipmentCreateInput): Promise<void> {
-    const already = await this.shipmentRepository.findOne({
-      where: { txId: newShipment.txId },
-    });
-    if (!already) {
-      const shipment = this.shipmentRepository.create({
-        courierId: newShipment.courierId,
-        txId: newShipment.txId,
-        status: 1,
+  async createShipment(
+    userId: number,
+    newShipment: ShipmentCreateInput,
+  ): Promise<void> {
+    const tx = await this.txSvc.getTransactionByOrderId(
+      userId,
+      newShipment.orderId,
+    );
+    if (tx) {
+      const exist = await this.shipmentRepository.findOne({
+        where: { txId: tx.id },
       });
-      await this.shipmentRepository.save(shipment);
-      return;
+      if (!exist) {
+        const shipment = this.shipmentRepository.create({
+          txId: tx.id,
+          address: newShipment.address,
+          postalCode: newShipment.postalCode,
+          recipientName: newShipment.recipientName,
+          recipientPhone: newShipment.recipientPhone,
+          status: 1,
+        });
+        await this.shipmentRepository.save(shipment);
+        return;
+      }
     }
     throw new Error(this.Exceptions.SHIPMENT_EXIST);
   }

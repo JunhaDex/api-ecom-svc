@@ -19,3 +19,9 @@ export interface CartItemInput {
   productId: number;
   count: number;
 }
+
+export interface TossPayload {
+  orderId: string;
+  amount: string;
+  paymentKey: string;
+}

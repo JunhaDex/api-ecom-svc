@@ -20,6 +20,8 @@ export class ShipmentEntity {
   @Column()
   address: string;
   @Column()
+  postalCode: string;
+  @Column()
   recipientName: string;
   @Column()
   recipientPhone: string;

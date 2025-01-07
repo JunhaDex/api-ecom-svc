@@ -6,6 +6,7 @@ import {
   Logger,
   Param,
   ParseIntPipe,
+  Post,
   Put,
   Query,
   Req,
@@ -139,6 +140,27 @@ export class ProductController extends BaseController {
         count: cleaned.count,
       });
       return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
+    } catch (e) {
+      if (e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID) {
+        return res
+          .code(HttpStatus.BAD_REQUEST)
+          .send(this.formatResponse(HttpStatus.BAD_REQUEST));
+      }
+      Logger.error('Unhandled Error: ' + e.message);
+      return res
+        .code(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+  }
+
+  @Post('cart/clear')
+  @UseGuards(UserGuard)
+  async clearCart(@Body() body: any, @Req() req: any, @Res() res: any) {
+    try {
+      const payload = this.transferData(body, {
+        must: ['productIds'],
+      });
+      await this.cartService.deleteCartItem(req.user.id, payload.productIds);
     } catch (e) {
       if (e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID) {
         return res

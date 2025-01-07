@@ -3,8 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaymentEntity } from '@/resources/payment/entities/payment.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { PaymentCreateInput } from '@/types/admin.type';
-import { randomUUID } from 'node:crypto';
-import { PaySessionEntity } from '@/resources/payment/entities/pay_session.entity';
 
 @Injectable()
 export class PaymentService {
@@ -18,25 +16,16 @@ export class PaymentService {
   constructor(
     @InjectRepository(PaymentEntity)
     private paymentRepository: Repository<PaymentEntity>,
-    @InjectRepository(PaySessionEntity)
-    private pSessionRepo: Repository<PaySessionEntity>,
   ) {}
 
   async createPayment(
-    userId: number,
     newPayment: PaymentCreateInput,
     manager?: EntityManager,
   ): Promise<void | PaymentEntity> {
-    await this.checkPaySession(userId, {
-      sessionId: newPayment.orderId,
-      amount: newPayment.paidAmount,
-    });
     const payment = this.paymentRepository.create({
-      payMethod: newPayment.payMethod,
-      paymentKey: newPayment.paymentKey,
       orderId: newPayment.orderId,
       paidAmount: newPayment.paidAmount,
-      balanceAmount: newPayment.balanceAmount,
+      balanceAmount: newPayment.paidAmount,
       paidAt: newPayment.paidAt,
     });
     if (manager) {
@@ -45,30 +34,27 @@ export class PaymentService {
     await this.paymentRepository.save(payment);
   }
 
-  async startPaySession(userId: number, amount: number): Promise<string> {
-    const sessionId = randomUUID();
-    const pSession = this.pSessionRepo.create({
-      userId,
-      sessionId,
-      amount,
-    });
-    await this.pSessionRepo.save(pSession);
-    return sessionId;
-  }
-
-  async checkPaySession(
-    userId: number,
-    paySession: {
-      sessionId: string;
-      amount: number;
+  async updatePayment(
+    index: number,
+    params: {
+      paymentKey: string;
+      payMethod: string;
     },
-  ): Promise<boolean> {
-    const pSession = await this.pSessionRepo.findOne({
-      where: { userId, sessionId: paySession.sessionId },
+    manager?: EntityManager,
+  ): Promise<void> {
+    const payment = await this.paymentRepository.findOne({
+      where: { id: index },
     });
-    if (pSession && pSession.amount === paySession.amount) {
-      return true;
+    if (payment) {
+      payment.paymentKey = params.paymentKey;
+      payment.payMethod = params.payMethod;
+      if (manager) {
+        await manager.save(PaymentEntity, payment);
+        return;
+      }
+      await this.paymentRepository.save(payment);
+      return;
     }
-    throw new Error(this.Exceptions.PAY_SESSION_INVALID);
+    throw new Error(this.Exceptions.PAYMENT_NOT_FOUND);
   }
 }

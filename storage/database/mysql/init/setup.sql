@@ -41,15 +41,17 @@ create table status_transaction
 INSERT INTO service.status_transaction (id, status_name, created_at)
 VALUES (1, 'purchased', '2024-12-07 16:52:52');
 INSERT INTO service.status_transaction (id, status_name, created_at)
-VALUES (2, 'shipped', '2024-12-07 16:52:52');
+VALUES (2, 'pay processing', '2024-12-07 16:52:52');
 INSERT INTO service.status_transaction (id, status_name, created_at)
-VALUES (3, 'delivered', '2024-12-07 16:52:52');
+VALUES (3, 'shipped', '2024-12-07 16:52:52');
 INSERT INTO service.status_transaction (id, status_name, created_at)
-VALUES (4, 'returned', '2024-12-07 16:52:52');
+VALUES (4, 'delivered', '2024-12-07 16:52:52');
 INSERT INTO service.status_transaction (id, status_name, created_at)
-VALUES (5, 'partial returned', '2024-12-07 16:52:52');
+VALUES (5, 'returned', '2024-12-07 16:52:52');
 INSERT INTO service.status_transaction (id, status_name, created_at)
-VALUES (6, 'canceled', '2024-12-07 16:52:52');
+VALUES (6, 'partial returned', '2024-12-07 16:52:52');
+INSERT INTO service.status_transaction (id, status_name, created_at)
+VALUES (7, 'canceled', '2024-12-07 16:52:52');
 
 create table status_shipment
 (
@@ -60,11 +62,13 @@ create table status_shipment
 );
 
 INSERT INTO service.status_shipment (id, status_name, created_at)
-VALUES (1, 'in transit', '2024-12-07 22:56:25');
+VALUES (1, 'queued', '2024-12-07 22:56:25');
 INSERT INTO service.status_shipment (id, status_name, created_at)
-VALUES (2, 'delivered', '2024-12-07 22:56:25');
+VALUES (2, 'in transit', '2024-12-07 22:56:25');
 INSERT INTO service.status_shipment (id, status_name, created_at)
-VALUES (3, 'error', '2024-12-07 22:56:25');
+VALUES (3, 'delivered', '2024-12-07 22:56:25');
+INSERT INTO service.status_shipment (id, status_name, created_at)
+VALUES (4, 'error', '2024-12-07 22:56:25');
 
 -- service tables
 create table admin
@@ -84,7 +88,7 @@ create table user_group
     id          int unsigned auto_increment
         primary key,
     group_name  varchar(100)                        not null,
-    description varchar(255)                        null,
+    description varchar(255) null,
     created_at  timestamp default CURRENT_TIMESTAMP not null
 );
 
@@ -92,15 +96,15 @@ create table user
 (
     id             int unsigned auto_increment
         primary key,
-    user_id        varchar(255)                           not null,
-    pwd            varchar(255)                           not null comment 'password',
-    branch_name    varchar(255)                           not null,
-    branch_manager varchar(255)                           not null,
-    branch_contact varchar(20)                            not null,
+    user_id        varchar(255)                        not null,
+    pwd            varchar(255)                        not null comment 'password',
+    branch_name    varchar(255)                        not null,
+    branch_manager varchar(255)                        not null,
+    branch_contact varchar(20)                         not null,
     group_id       int unsigned                           null,
     status         int unsigned default '1'               not null,
-    created_at     timestamp    default CURRENT_TIMESTAMP not null,
-    updated_at     datetime     default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    created_at     timestamp default CURRENT_TIMESTAMP not null,
+    updated_at     datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint user_id_unique
         unique (user_id),
     constraint user_status_user_id_fk
@@ -108,14 +112,15 @@ create table user
     constraint user_user_group_id_fk
         foreign key (group_id) references user_group (id)
 );
+);
 
 create table product
 (
     id            int unsigned auto_increment
         primary key,
     product_name  varchar(255)                           not null,
-    description   varchar(255) default ''                null,
-    image_urls    json                                   null,
+    description   varchar(255) default '' null,
+    image_urls    json null,
     product_price decimal(10, 2)                         not null,
     status        int unsigned default '1'               not null,
     created_at    timestamp    default CURRENT_TIMESTAMP not null,
@@ -164,24 +169,12 @@ create index cart_user_product_product_id_index
 create index cart_user_product_user_id_index
     on cart_user_product (user_id);
 
-create table pay_session
-(
-    id         int unsigned auto_increment
-        primary key,
-    session_id char(36)                         not null comment 'uuid_v4',
-    amount     decimal(10, 2)                      not null,
-    created_at timestamp default CURRENT_TIMESTAMP not null,
-    updated_at datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    constraint pay_session_unique
-        unique (session_id)
-);
-
 create table payment
 (
     id             int unsigned auto_increment
         primary key,
-    pay_method     varchar(255)                        not null,
-    payment_key    varchar(255)                        not null comment 'from toss',
+    pay_method     varchar(255)                        null,
+    payment_key    varchar(255)                        null comment 'from toss',
     order_id       char(36)                            not null comment 'from toss uuid_v4',
     paid_amount    decimal(10, 2)                      not null comment 'from toss',
     balance_amount decimal(10, 2)                      not null comment 'when canceled',
@@ -217,10 +210,10 @@ create table transaction_product
         primary key,
     tx_id      int unsigned                           not null,
     product_id int unsigned                           not null,
-    count      int                                    not null,
-    price      decimal(10, 2)                         not null,
+    count      int                                 not null,
+    price      decimal(10, 2)                      not null,
     status     int unsigned default '1'               not null,
-    created_at timestamp    default CURRENT_TIMESTAMP not null,
+    created_at timestamp default CURRENT_TIMESTAMP not null,
     constraint transaction_product_product_id_fk
         foreign key (product_id) references product (id),
     constraint transaction_product_status_transaction_id_fk
@@ -233,8 +226,8 @@ create table courier
 (
     id           int unsigned auto_increment
         primary key,
-    courier_name varchar(255)                        null,
-    api_url      varchar(255)                        null,
+    courier_name varchar(255) null,
+    api_url      varchar(255) null,
     created_at   timestamp default CURRENT_TIMESTAMP not null
 );
 
@@ -243,11 +236,12 @@ create table shipment
     id              int unsigned auto_increment
         primary key,
     tx_id           int unsigned                        not null,
-    courier_id      int unsigned                        not null,
+    courier_id      int unsigned                        null,
     address         varchar(255)                        not null,
+    postal_code     varchar(10)                         not null,
     recipient_name  varchar(255)                        not null,
     recipient_phone varchar(20)                         not null,
-    tracking_no     varchar(255)                        not null,
+    tracking_no     varchar(255)                        null,
     status          int unsigned                        not null,
     created_at      timestamp default CURRENT_TIMESTAMP not null,
     updated_at      datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
@@ -263,8 +257,8 @@ create table notice
 (
     id         int unsigned auto_increment
         primary key,
-    title      varchar(255)                        null,
-    content    text                                null,
+    title      varchar(255) null,
+    content    text null,
     created_at timestamp default CURRENT_TIMESTAMP not null,
     updated_at datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
 );
