@@ -4,7 +4,10 @@ import {
   Get,
   HttpStatus,
   Logger,
+  Param,
   Post,
+  Put,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -27,6 +30,27 @@ export class TransactionController extends BaseController {
     try {
       const uid = req.user.id;
       const result = await this.txService.getUserTxSummary(uid);
+      return res
+        .code(HttpStatus.OK)
+        .send(this.formatResponse(HttpStatus.OK, result));
+    } catch (e) {
+      Logger.error('Unhandled Error: ' + e.message);
+      return res
+        .code(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+  }
+
+  @Get('list')
+  @UseGuards(UserGuard)
+  async getUserTxList(@Query() query: any, @Req() req: any, @Res() res: any) {
+    try {
+      const uid = req.user.id;
+      const options = this.transferData(query, {
+        must: [],
+        optional: ['page', 'size'],
+      });
+      const result = await this.txService.getUserTxList(uid, options);
       return res
         .code(HttpStatus.OK)
         .send(this.formatResponse(HttpStatus.OK, result));
@@ -79,6 +103,32 @@ export class TransactionController extends BaseController {
       } else if (
         e.message ===
         TransactionService.TRANSACTION_SERVICE_EXCEPTIONS.TX_EXPIRED
+      ) {
+        return res
+          .code(HttpStatus.FORBIDDEN)
+          .send(this.formatResponse(HttpStatus.FORBIDDEN));
+      }
+      Logger.error('Unhandled Error: ' + e.message);
+      return res
+        .code(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+  }
+
+  @Put('cancel/:orderId')
+  @UseGuards(UserGuard)
+  async cancelTransaction(
+    @Param('orderId') orderId: string,
+    @Req() req: any,
+    @Res() res: any,
+  ) {
+    try {
+      await this.txService.cancelTransaction(req.user.id, orderId);
+      return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
+    } catch (e) {
+      if (
+        e.message ===
+        TransactionService.TRANSACTION_SERVICE_EXCEPTIONS.TX_CANCEL_FAILED
       ) {
         return res
           .code(HttpStatus.FORBIDDEN)

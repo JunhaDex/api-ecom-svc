@@ -96,4 +96,25 @@ Content-Type: application/json
   "name": "admin"
 }
 
+### CLIENT SIDE
 ###
+POST http://localhost:3000/api/v1/user/login
+Content-Type: application/json
+
+{
+  "userId": "user",
+  "password": "password"
+}
+
+###
+GET http://localhost:3000/api/v1/tx/list
+Accept: application/json
+Content-Type: application/json
+Authorization:
+
+###
+PUT http://localhost:3000/api/v1/tx/cancel/b93d2209-6e7c-4dfe-b9af-481cdb34eb17
+Content-Type: application/json
+Authorization:
+
+{}

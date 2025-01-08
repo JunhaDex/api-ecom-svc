@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   TransactionEntity,
@@ -22,6 +22,7 @@ export class TransactionService {
   static TRANSACTION_SERVICE_EXCEPTIONS = {
     TRANSACTION_NOT_FOUND: 'TRANSACTION_NOT_FOUND',
     TX_EXPIRED: 'TX_EXPIRED',
+    TX_CANCEL_FAILED: 'TX_CANCEL_FAILED',
   } as const;
 
   private readonly Exceptions =
@@ -77,13 +78,14 @@ export class TransactionService {
         },
       });
       const res = await client.post('confirm', confirmToss);
-      console.log(res);
+      Logger.log('Payment confirmed: ' + confirmToss);
       await this.txRepo.manager.transaction(async (txManager) => {
         await this.paymentSvc.updatePayment(
           tx.payment.id,
           {
             paymentKey: confirmToss.paymentKey,
             payMethod: res.data.method,
+            url: res.data.receipt?.url,
           },
           txManager,
         );
@@ -94,6 +96,48 @@ export class TransactionService {
       return;
     }
     throw new Error(this.Exceptions.TX_EXPIRED);
+  }
+
+  async cancelTransaction(userId: number, orderId: string) {
+    const widgetSecretKey = '';
+    const encryptedSecretKey =
+      'Basic ' + Buffer.from(widgetSecretKey + ':').toString('base64');
+    // https://api.tosspayments.com/v1/payments/{paymentKey}/cancel
+    const tx = await this.getTransactionByOrderId(userId, orderId);
+    if (tx && tx.status === 1) {
+      const client = axios.create({
+        baseURL: 'https://api.tosspayments.com/v1/payments',
+        headers: {
+          Authorization: encryptedSecretKey,
+          'Content-Type': 'application/json',
+        },
+      });
+      try {
+        // const res = await client.post(`${tx.payment.paymentKey}/cancel`, {
+        //   cancelReason: 'User request',
+        // });
+        // Logger.log('Payment canceled: ' + orderId + ' :::::: ' + res.data);
+        await this.txRepo.manager.transaction(async (txManager) => {
+          await this.paymentSvc.cancelPaymentAll(tx.payment.id, txManager);
+          await txManager.update(
+            TransactionProductEntity,
+            {
+              txId: tx.id,
+            },
+            {
+              status: 7,
+            },
+          );
+          await txManager.update(TransactionEntity, tx.id, {
+            status: 7,
+          });
+        });
+        return;
+      } catch (e) {
+        Logger.error('Payment cancel failed: ' + orderId + ' :::::: ' + e);
+      }
+    }
+    throw new Error(this.Exceptions.TX_CANCEL_FAILED);
   }
 
   async getTransactionList(options?: SvcQuery): Promise<Paginate<TxAdminItem>> {
@@ -146,6 +190,35 @@ export class TransactionService {
         shipment: tx.shipment ?? null,
         createdAt: tx.createdAt,
       })),
+      meta: {
+        pageNo: options?.page?.pageNo ?? 1,
+        pageSize: take,
+        totalCount: total,
+        totalPage: Math.ceil(total / take),
+      },
+    };
+  }
+
+  async getUserTxList(
+    userId: number,
+    options?: SvcQuery,
+  ): Promise<Paginate<Transaction>> {
+    const take = options?.page?.pageSize ?? 10;
+    const skip = ((options?.page?.pageNo ?? 1) - 1) * take;
+    const [list, total] = await this.txRepo.findAndCount({
+      where: { userId },
+      relations: {
+        products: {
+          product: true,
+        },
+        shipment: true,
+        payment: true,
+      },
+      take,
+      skip,
+    });
+    return {
+      list,
       meta: {
         pageNo: options?.page?.pageNo ?? 1,
         pageSize: take,

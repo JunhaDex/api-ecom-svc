@@ -178,6 +178,7 @@ create table payment
     order_id       char(36)                            not null comment 'from toss uuid_v4',
     paid_amount    decimal(10, 2)                      not null comment 'from toss',
     balance_amount decimal(10, 2)                      not null comment 'when canceled',
+    receipt_url    varchar(255)                        null comment 'toss receipt url',
     paid_at        datetime                            not null,
     created_at     timestamp default CURRENT_TIMESTAMP not null,
     updated_at     datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,

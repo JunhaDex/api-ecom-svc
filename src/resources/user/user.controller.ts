@@ -1,19 +1,14 @@
 import {
   Body,
   Controller,
-  Get,
   HttpStatus,
   Logger,
   Post,
-  Req,
   Res,
-  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { LoginInput } from '@/types/general.type';
 import { BaseController } from '@/resources/base.controller';
-import { TransactionService } from '@/resources/transaction/transaction.service';
-import { UserGuard } from '@/guards/user.guard';
 
 @Controller('user')
 export class UserController extends BaseController {
@@ -35,7 +30,7 @@ export class UserController extends BaseController {
         .code(HttpStatus.OK)
         .send(this.formatResponse(HttpStatus.OK, result));
     } catch (e) {
-      Logger.log(`ACCESS DENIED: ${JSON.stringify(cred)} :::::: ${e.message}`);
+      Logger.log(`ACCESS DENIED: ${JSON.stringify(cred)} :::::: ${e}`);
       return res
         .code(HttpStatus.FORBIDDEN)
         .send(this.formatResponse(HttpStatus.FORBIDDEN));

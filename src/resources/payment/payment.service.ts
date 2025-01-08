@@ -39,6 +39,7 @@ export class PaymentService {
     params: {
       paymentKey: string;
       payMethod: string;
+      url?: string;
     },
     manager?: EntityManager,
   ): Promise<void> {
@@ -48,6 +49,26 @@ export class PaymentService {
     if (payment) {
       payment.paymentKey = params.paymentKey;
       payment.payMethod = params.payMethod;
+      payment.receiptUrl = params.url;
+      if (manager) {
+        await manager.save(PaymentEntity, payment);
+        return;
+      }
+      await this.paymentRepository.save(payment);
+      return;
+    }
+    throw new Error(this.Exceptions.PAYMENT_NOT_FOUND);
+  }
+
+  async cancelPaymentAll(
+    index: number,
+    manager?: EntityManager,
+  ): Promise<void> {
+    const payment = await this.paymentRepository.findOne({
+      where: { id: index },
+    });
+    if (payment) {
+      payment.balanceAmount = 0;
       if (manager) {
         await manager.save(PaymentEntity, payment);
         return;

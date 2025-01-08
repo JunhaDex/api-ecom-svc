@@ -16,6 +16,8 @@ export class PaymentEntity {
   @Column()
   balanceAmount: number;
   @Column()
+  receiptUrl: string;
+  @Column()
   paidAt: Date;
   @Column()
   createdAt: Date;

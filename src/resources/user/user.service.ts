@@ -124,6 +124,7 @@ export class UserService {
           userId: user.userId,
           sub: user.id,
         };
+        console.log(payload);
         return {
           accessToken: this.jwtService.sign(payload, { expiresIn: '1d' }),
           user: {
