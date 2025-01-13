@@ -78,4 +78,18 @@ export class PaymentService {
     }
     throw new Error(this.Exceptions.PAYMENT_NOT_FOUND);
   }
+
+  async deletePayment(index: number, manager?: EntityManager): Promise<void> {
+    const payment = await this.paymentRepository.findOne({
+      where: { id: index },
+    });
+    if (payment) {
+      if (manager) {
+        await manager.remove(PaymentEntity, payment);
+        return;
+      }
+      await this.paymentRepository.remove(payment);
+      return;
+    }
+  }
 }

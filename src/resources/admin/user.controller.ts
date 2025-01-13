@@ -9,6 +9,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   Res,
 } from '@nestjs/common';
@@ -88,7 +89,7 @@ export class AdminUserController extends BaseController {
   }
 
   @Get('list')
-  async getUsers(@Query() query: any, @Res() res: any) {
+  async listUsers(@Query() query: any, @Res() res: any) {
     const options = this.transferData(query, {
       must: [],
       optional: ['page', 'size', 'by_id', 'by_branch'],
@@ -106,6 +107,59 @@ export class AdminUserController extends BaseController {
     return res
       .code(HttpStatus.OK)
       .send(this.formatResponse(HttpStatus.OK, result));
+  }
+
+  @Get(':id')
+  async getUser(@Param('id', ParseIntPipe) id: number, @Res() res: any) {
+    try {
+      const result = await this.userService.getUser(id);
+      return res
+        .code(HttpStatus.OK)
+        .send(this.formatResponse(HttpStatus.OK, result));
+    } catch (e) {
+      if (e.message === UserService.USER_SERVICE_EXCEPTIONS.USER_NOT_FOUND) {
+        return res
+          .code(HttpStatus.NOT_FOUND)
+          .send(this.formatResponse(HttpStatus.NOT_FOUND));
+      } else {
+        Logger.error('Unhandled Error: ' + e.message);
+        return res
+          .code(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+      }
+    }
+  }
+
+  @Put(':id/update')
+  async updateUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: any,
+    @Res() res: any,
+  ) {
+    try {
+      const cleaned = this.transferData<UserCreateInput>(body, {
+        must: ['userId', 'branchName', 'branchManager', 'branchContact'],
+      });
+      await this.userService.updateUserInfo(id, cleaned);
+      return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
+    } catch (e) {
+      if (e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID) {
+        return res
+          .code(HttpStatus.BAD_REQUEST)
+          .send(this.formatResponse(HttpStatus.BAD_REQUEST));
+      } else if (
+        e.message === UserService.USER_SERVICE_EXCEPTIONS.USER_NOT_FOUND
+      ) {
+        return res
+          .code(HttpStatus.NOT_FOUND)
+          .send(this.formatResponse(HttpStatus.NOT_FOUND));
+      } else {
+        Logger.error('Unhandled Error: ' + e.message);
+        return res
+          .code(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+      }
+    }
   }
 
   @Get('group/list')

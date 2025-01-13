@@ -33,6 +33,7 @@ export interface UserCreateInput {
 }
 
 export interface UserUpdateInput {
+  userId?: string;
   branchName?: string;
   branchManager?: string;
   branchContact?: string;
@@ -146,6 +147,7 @@ export interface Transaction {
   status: number;
   createdAt: Date;
   updatedAt: Date;
+  shipment?: Shipment;
   payment?: Payment;
   user?: User;
   products?: {

@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import axios from 'axios';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   TransactionEntity,
@@ -15,7 +16,7 @@ import { PaymentEntity } from '@/resources/payment/entities/payment.entity';
 import { Paginate, SvcQuery } from '@/types/general.type';
 import { getMonthRange } from '@/utils/index.util';
 import { TossPayload } from '@/types/service.type';
-import axios from 'axios';
+import { ShipmentService } from '@/resources/shipment/shipment.service';
 
 @Injectable()
 export class TransactionService {
@@ -30,6 +31,8 @@ export class TransactionService {
 
   constructor(
     private paymentSvc: PaymentService,
+    @Inject(forwardRef(() => ShipmentService))
+    private shipmentSvc: ShipmentService,
     @InjectRepository(TransactionEntity)
     private txRepo: Repository<TransactionEntity>,
     @InjectRepository(TransactionProductEntity)
@@ -65,9 +68,9 @@ export class TransactionService {
   }
 
   async confirmTransaction(userId: number, confirmToss: TossPayload) {
-    const widgetSecretKey = '';
+    const tossKey = process.env.TOSS_PAY_KEY;
     const encryptedSecretKey =
-      'Basic ' + Buffer.from(widgetSecretKey + ':').toString('base64');
+      'Basic ' + Buffer.from(tossKey + ':').toString('base64');
     const tx = await this.getTransactionByOrderId(userId, confirmToss.orderId);
     if (tx && tx.status === 2) {
       const client = axios.create({
@@ -99,9 +102,9 @@ export class TransactionService {
   }
 
   async cancelTransaction(userId: number, orderId: string) {
-    const widgetSecretKey = '';
+    const tossKey = process.env.TOSS_PAY_KEY;
     const encryptedSecretKey =
-      'Basic ' + Buffer.from(widgetSecretKey + ':').toString('base64');
+      'Basic ' + Buffer.from(tossKey + ':').toString('base64');
     // https://api.tosspayments.com/v1/payments/{paymentKey}/cancel
     const tx = await this.getTransactionByOrderId(userId, orderId);
     if (tx && tx.status === 1) {
@@ -113,11 +116,12 @@ export class TransactionService {
         },
       });
       try {
-        // const res = await client.post(`${tx.payment.paymentKey}/cancel`, {
-        //   cancelReason: 'User request',
-        // });
-        // Logger.log('Payment canceled: ' + orderId + ' :::::: ' + res.data);
+        const res = await client.post(`${tx.payment.paymentKey}/cancel`, {
+          cancelReason: 'User request',
+        });
+        Logger.log('Payment canceled: ' + orderId + ' :::::: ' + res.data);
         await this.txRepo.manager.transaction(async (txManager) => {
+          await this.shipmentSvc.deleteShipment(tx.shipment.id, txManager);
           await this.paymentSvc.cancelPaymentAll(tx.payment.id, txManager);
           await txManager.update(
             TransactionProductEntity,
@@ -136,6 +140,16 @@ export class TransactionService {
       } catch (e) {
         Logger.error('Payment cancel failed: ' + orderId + ' :::::: ' + e);
       }
+    } else if (tx.status === 2) {
+      await this.txRepo.manager.transaction(async (txManager) => {
+        await this.shipmentSvc.deleteShipment(tx.shipment.id, txManager);
+        await txManager.delete(TransactionProductEntity, {
+          txId: tx.id,
+        });
+        await txManager.delete(TransactionEntity, tx.id);
+        await this.paymentSvc.deletePayment(tx.payment.id, txManager);
+      });
+      return;
     }
     throw new Error(this.Exceptions.TX_CANCEL_FAILED);
   }
@@ -214,6 +228,7 @@ export class TransactionService {
         shipment: true,
         payment: true,
       },
+      order: { createdAt: 'DESC' },
       take,
       skip,
     });
@@ -234,7 +249,7 @@ export class TransactionService {
   ): Promise<Transaction> {
     return await this.txRepo.findOne({
       where: { userId, payment: { orderId } },
-      relations: ['payment'],
+      relations: ['payment', 'shipment'],
     });
   }
 

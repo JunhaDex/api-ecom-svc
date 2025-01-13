@@ -161,6 +161,7 @@ export class ProductController extends BaseController {
         must: ['productIds'],
       });
       await this.cartService.deleteCartItem(req.user.id, payload.productIds);
+      return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
     } catch (e) {
       if (e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID) {
         return res

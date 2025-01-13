@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ShipmentEntity } from '@/resources/shipment/entities/shipment.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { ShipmentCreateInput } from '@/types/admin.type';
 import { TransactionService } from '@/resources/transaction/transaction.service';
 
@@ -14,6 +14,7 @@ export class ShipmentService {
   private readonly Exceptions = ShipmentService.SHIPMENT_SERVICE_EXCEPTIONS;
 
   constructor(
+    @Inject(forwardRef(() => TransactionService))
     private txSvc: TransactionService,
     @InjectRepository(ShipmentEntity)
     private shipmentRepository: Repository<ShipmentEntity>,
@@ -66,5 +67,13 @@ export class ShipmentService {
       return;
     }
     throw new Error(this.Exceptions.SHIPMENT_NOT_FOUND);
+  }
+
+  async deleteShipment(index: number, manager?: EntityManager): Promise<void> {
+    if (manager) {
+      await manager.delete(ShipmentEntity, { id: index });
+      return;
+    }
+    await this.shipmentRepository.delete({ id: index });
   }
 }
