@@ -22,6 +22,21 @@ export abstract class BaseController {
     throw new Error(this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID);
   }
 
+  protected transferMultipart<T extends object>(
+    raw: any,
+    keys: DataTransfer<T>,
+  ): Partial<T> {
+    const allowed = [...keys.must, ...(keys.optional ?? [])];
+    const data = allowed.reduce((acc, key) => {
+      const k = key as string;
+      if (raw[k] !== undefined) {
+        acc[k] = raw[k].value;
+      }
+      return acc;
+    }, {} as Partial<T>);
+    return this.transferData(data, keys);
+  }
+
   protected formatResponse(code: number, result?: any) {
     let message = '';
     if (code >= 200 && code < 300) {

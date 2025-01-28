@@ -30,7 +30,7 @@ async function bootstrap() {
     },
   );
   await app.register(userAgent);
-  await app.register(multipart);
+  await app.register(multipart, { attachFieldsToBody: true });
   app.setGlobalPrefix('api/v1');
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
   Logger.log(`Server running on port ${process.env.PORT ?? 3000}`);

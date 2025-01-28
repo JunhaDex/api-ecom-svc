@@ -10,23 +10,35 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  Req,
   Res,
 } from '@nestjs/common';
 import { ProductService } from '@/resources/product/product.service';
 import { ProductCreateInput } from '@/types/admin.type';
+import { StorageProvider } from '@/providers/storage.provider';
 
 @Controller('admin/product')
 export class AdminProductController extends BaseController {
+  private storageProvider = new StorageProvider();
+
   constructor(private readonly productService: ProductService) {
     super();
   }
 
   @Post('new')
-  async registerProduct(@Body() body: any, @Res() res: any) {
+  async registerProduct(@Req() req: any, @Res() res: any) {
+    const body = req.body;
     try {
-      const newProduct = this.transferData<ProductCreateInput>(body, {
+      const newProduct = this.transferMultipart<ProductCreateInput>(body, {
         must: ['productName', 'description', 'productPrice'],
       });
+      const files = await req.saveRequestFiles();
+      console.log(files);
+      if (files.length) {
+        newProduct.imageUrls =
+          await this.storageProvider.uploadProductImage(files);
+      }
+      console.log(newProduct);
       await this.productService.createProduct(newProduct as ProductCreateInput);
     } catch (e) {
       if (e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID) {

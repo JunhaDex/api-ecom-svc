@@ -203,6 +203,38 @@ export class AdminUserController extends BaseController {
     }
   }
 
+  @Put('group/:id/update')
+  async updateUserGroup(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: any,
+    @Res() res: any,
+  ) {
+    try {
+      const cleaned = this.transferData<UserGroupCreateInput>(body, {
+        must: ['groupName', 'description'],
+      });
+      await this.groupService.updateGroup(id, cleaned);
+      return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
+    } catch (e) {
+      if (e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID) {
+        return res
+          .code(HttpStatus.BAD_REQUEST)
+          .send(this.formatResponse(HttpStatus.BAD_REQUEST));
+      } else if (
+        e.message === GroupService.GROUP_SERVICE_EXCEPTIONS.GROUP_NOT_FOUND
+      ) {
+        return res
+          .code(HttpStatus.NOT_FOUND)
+          .send(this.formatResponse(HttpStatus.NOT_FOUND));
+      } else {
+        Logger.error('Unhandled Error: ' + e.message);
+        return res
+          .code(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+      }
+    }
+  }
+
   @Post('group/:id/user/add')
   async addGroupUser(
     @Param('id', ParseIntPipe) id: number,
@@ -260,6 +292,45 @@ export class AdminUserController extends BaseController {
           }) as Product;
         });
         await this.groupService.addGroupProduct(id, products);
+      }
+    } catch (e) {
+      if (e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID) {
+        return res
+          .code(HttpStatus.BAD_REQUEST)
+          .send(this.formatResponse(HttpStatus.BAD_REQUEST));
+      } else if (
+        e.message === GroupService.GROUP_SERVICE_EXCEPTIONS.GROUP_NOT_FOUND
+      ) {
+        return res
+          .code(HttpStatus.NOT_FOUND)
+          .send(this.formatResponse(HttpStatus.NOT_FOUND));
+      } else {
+        Logger.error('Unhandled Error: ' + e.message);
+        return res
+          .code(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+      }
+    }
+    return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
+  }
+
+  @Post('group/:id/product/remove')
+  async removeGroupProduct(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: any,
+    @Res() res: any,
+  ) {
+    try {
+      const cleaned = this.transferData(body, {
+        must: ['products'],
+      });
+      if (Array.isArray(cleaned.products) && cleaned.products.length) {
+        const products = cleaned.products.map((product: any) => {
+          return this.transferData<Product>(product, {
+            must: ['id', 'productName'],
+          }) as Product;
+        });
+        await this.groupService.removeGroupProduct(id, products);
       }
     } catch (e) {
       if (e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID) {
