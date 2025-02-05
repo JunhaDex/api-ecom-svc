@@ -274,6 +274,18 @@ export class TransactionService {
     });
   }
 
+  async getShipmentList(options?: SvcQuery): Promise<Paginate<ShipmentEntity>> {
+    return {
+      list: [],
+      meta: {
+        pageNo: options?.page?.pageNo ?? 1,
+        pageSize: options?.page?.pageSize ?? 10,
+        totalCount: 0,
+        totalPage: 0,
+      },
+    };
+  }
+
   async updateTransactionShipment(
     index: number,
     params: UpdateTrackingInput,

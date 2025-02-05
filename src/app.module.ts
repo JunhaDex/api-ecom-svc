@@ -11,15 +11,16 @@ import { ShipmentModule } from '@/resources/shipment/shipment.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { JwtModule } from '@nestjs/jwt';
 import { NoticeModule } from '@/resources/notice/notice.module';
+import * as process from 'node:process';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
-      port: 13306,
-      username: 'root',
-      password: '',
+      host: process.env.APP_DB_HOST ?? '',
+      port: Number(process.env.APP_DB_PORT ?? 3306),
+      username: process.env.APP_DB_USER ?? '',
+      password: process.env.APP_DB_PASSWARD ?? '',
       database: 'service',
       entities: ['dist/**/*.entity{.ts,.js}'],
       namingStrategy: new SnakeNamingStrategy(),
