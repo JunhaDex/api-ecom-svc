@@ -101,6 +101,7 @@ export class AdminService {
           adminId: admin.adminId,
           name: admin.name,
           sub: admin.id,
+          type: 'admin',
         };
         return {
           accessToken: this.jwtService.sign(payload, { expiresIn: '1d' }),

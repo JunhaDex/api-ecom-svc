@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as cheerio from 'cheerio';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -10,6 +11,7 @@ import {
   Transaction,
   TransactionCreateInput,
   TxAdminItem,
+  UpdateTrackingInput,
 } from '@/types/admin.type';
 import { PaymentService } from '@/resources/payment/payment.service';
 import { PaymentEntity } from '@/resources/payment/entities/payment.entity';
@@ -17,6 +19,7 @@ import { Paginate, SvcQuery } from '@/types/general.type';
 import { getMonthRange } from '@/utils/index.util';
 import { TossPayload } from '@/types/service.type';
 import { ShipmentService } from '@/resources/shipment/shipment.service';
+import { ShipmentEntity } from '@/resources/shipment/entities/shipment.entity';
 
 @Injectable()
 export class TransactionService {
@@ -243,6 +246,24 @@ export class TransactionService {
     };
   }
 
+  async getTransaction(index: number): Promise<Transaction> {
+    const tx = await this.txRepo.findOne({
+      where: { id: index },
+      relations: {
+        products: {
+          product: true,
+        },
+        user: true,
+        shipment: true,
+        payment: true,
+      },
+    });
+    if (tx) {
+      return tx;
+    }
+    throw new Error(this.Exceptions.TRANSACTION_NOT_FOUND);
+  }
+
   async getTransactionByOrderId(
     userId: number,
     orderId: string,
@@ -253,24 +274,37 @@ export class TransactionService {
     });
   }
 
-  // async updateTransactionShipment(
-  //   index: number,
-  //   params: ShipmentCreateInput,
-  // ): Promise<void> {
-  //   const tx = await this.txRepo.findOne({
-  //     where: { id: index },
-  //     relations: ['shipment'],
-  //   });
-  //   if (tx) {
-  //     if (tx.shipment) {
-  //       await this.shipmentSvc.updateShipment(tx.shipment.id, params);
-  //     } else {
-  //       await this.shipmentSvc.createShipment({ ...params, txId: index });
-  //     }
-  //     return;
-  //   }
-  //   throw new Error(this.Exceptions.TRANSACTION_NOT_FOUND);
-  // }
+  async updateTransactionShipment(
+    index: number,
+    params: UpdateTrackingInput,
+  ): Promise<void> {
+    const tx = await this.txRepo.findOne({
+      where: { id: index },
+      relations: ['shipment'],
+    });
+    if (tx) {
+      if (tx.shipment) {
+        await this.txRepo.manager.transaction(async (txManager) => {
+          await this.shipmentSvc.updateShipment(
+            tx.shipment.id,
+            {
+              ...tx.shipment,
+              orderId: '',
+              courierId: params.courierId,
+              trackingNo: params.trackingNo,
+              status: params.status,
+            },
+            txManager,
+          );
+          await txManager.update(TransactionEntity, tx.id, {
+            status: 3,
+          });
+        });
+      }
+      return;
+    }
+    throw new Error(this.Exceptions.TRANSACTION_NOT_FOUND);
+  }
 
   async getUserTxSummary(
     userId: number,
@@ -292,5 +326,67 @@ export class TransactionService {
       cost: spend,
       in_transit: transit,
     };
+  }
+
+  async trackShipment() {
+    const txList = await this.txRepo.find({
+      where: { status: 3 },
+      relations: { shipment: { courier: true } },
+    });
+    const shipStatus = await this.getShipmentStatus(txList);
+    for (const isShipped of shipStatus) {
+      const idx = shipStatus.indexOf(isShipped);
+      if (isShipped) {
+        txList[idx].status = 4;
+        txList[idx].shipment.status = 4;
+      }
+    }
+    const updated = txList.filter((tx) => tx.status === 4);
+    this.txRepo.manager.transaction(async (txManager) => {
+      const shipments = updated.map((tx) => tx.shipment);
+      await txManager.save(ShipmentEntity, shipments);
+      await txManager.save(TransactionEntity, updated);
+    });
+  }
+
+  private async getShipmentStatus(txList: TransactionEntity[]) {
+    const shipStatus = await Promise.all(
+      txList.map(async (tx) => {
+        const courier = tx.shipment.courier;
+        if (courier) {
+          if (courier.id === 1) {
+            // 대한통운
+            const client = axios.create({
+              baseURL: courier.apiUrl,
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+            });
+            const res = await client.post('', {
+              wblNo: tx.shipment.trackingNo,
+            });
+            if (res.status === 200) {
+              const list = res.data.data.svcOutList;
+              const latest = list.pop(); // crgStDnm === 배송완료
+              return latest.crgStDnm === '배송완료';
+            }
+          } else if (courier.id === 2) {
+            // 로젠택배
+            const client = axios.create({
+              baseURL: courier.apiUrl,
+              headers: {
+                'Content-Type': 'text/html',
+              },
+            });
+            const res = await client.get(tx.shipment.trackingNo);
+            const $ = cheerio.load(res.data);
+            const table = $('table.tkInfo tbody').text().trim();
+            return table.includes('배송완료');
+          }
+        }
+        return false;
+      }),
+    );
+    return shipStatus;
   }
 }

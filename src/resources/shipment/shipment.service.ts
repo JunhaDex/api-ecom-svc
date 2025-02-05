@@ -2,8 +2,10 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ShipmentEntity } from '@/resources/shipment/entities/shipment.entity';
 import { EntityManager, Repository } from 'typeorm';
-import { ShipmentCreateInput } from '@/types/admin.type';
+import { Shipment, ShipmentCreateInput } from '@/types/admin.type';
 import { TransactionService } from '@/resources/transaction/transaction.service';
+import { Paginate, SvcQuery } from '@/types/general.type';
+import { CourierEntity } from '@/resources/shipment/entities/courier.entity';
 
 @Injectable()
 export class ShipmentService {
@@ -48,9 +50,29 @@ export class ShipmentService {
     throw new Error(this.Exceptions.SHIPMENT_EXIST);
   }
 
+  async getShipmentList(options?: SvcQuery): Promise<Paginate<Shipment>> {
+    const take = options?.page?.pageSize ?? 10;
+    const skip = ((options?.page?.pageNo ?? 1) - 1) * take;
+    const [list, total] = await this.shipmentRepository.findAndCount({
+      relations: ['courier'],
+      take,
+      skip,
+    });
+    return {
+      list,
+      meta: {
+        pageNo: options?.page?.pageNo ?? 1,
+        pageSize: take,
+        totalCount: total,
+        totalPage: Math.ceil(total / take),
+      },
+    };
+  }
+
   async updateShipment(
     index: number,
     params: ShipmentCreateInput,
+    manager?: EntityManager,
   ): Promise<void> {
     const shipment = await this.shipmentRepository.findOne({
       where: { id: index },
@@ -63,6 +85,10 @@ export class ShipmentService {
       shipment.recipientPhone = params.recipientPhone;
       shipment.trackingNo = params.trackingNo;
       shipment.status = params?.status ?? 1;
+      if (manager) {
+        await manager.save(ShipmentEntity, shipment);
+        return;
+      }
       await this.shipmentRepository.save(shipment);
       return;
     }

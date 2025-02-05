@@ -8,6 +8,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   Res,
 } from '@nestjs/common';
@@ -38,7 +39,7 @@ export class NoticeController extends BaseController {
   }
 
   @Get('list')
-  async getNotices(@Query() query: any, @Res() res: any) {
+  async listNotices(@Query() query: any, @Res() res: any) {
     const options = this.transferData(query, {
       must: [],
       optional: ['page', 'size', 'by_title'],
@@ -55,6 +56,34 @@ export class NoticeController extends BaseController {
     return res
       .status(HttpStatus.OK)
       .send(this.formatResponse(HttpStatus.OK, result));
+  }
+
+  @Get(':id')
+  async getNotice(@Param('id', ParseIntPipe) id: number, @Res() res: any) {
+    const result = await this.noticeService.getNotice(id);
+    return res
+      .status(HttpStatus.OK)
+      .send(this.formatResponse(HttpStatus.OK, result));
+  }
+
+  @Put(':id/update')
+  async updateNotice(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: any,
+    @Res() res: any,
+  ) {
+    try {
+      const newNotice = this.transferData<NoticeCreateInput>(body, {
+        must: ['title', 'content'],
+      });
+      await this.noticeService.updateNotice(id, newNotice as NoticeCreateInput);
+    } catch (e) {
+      Logger.error('Unhandled Error: ' + e.message);
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+    return res.status(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
   }
 
   @Delete(':id/remove')

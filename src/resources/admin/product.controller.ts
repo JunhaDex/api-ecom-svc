@@ -9,6 +9,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   Req,
   Res,
@@ -56,7 +57,7 @@ export class AdminProductController extends BaseController {
   }
 
   @Get('list')
-  async getProducts(@Query() query: any, @Res() res: any) {
+  async listProducts(@Query() query: any, @Res() res: any) {
     const options = this.transferData(query, {
       must: [],
       optional: ['page', 'size', 'by_id', 'by_branch'],
@@ -74,6 +75,43 @@ export class AdminProductController extends BaseController {
     return res
       .code(HttpStatus.OK)
       .send(this.formatResponse(HttpStatus.OK, result));
+  }
+
+  @Get(':id')
+  async getProduct(@Param('id', ParseIntPipe) id: number, @Res() res: any) {
+    const result = await this.productService.getProduct(id);
+    return res
+      .code(HttpStatus.OK)
+      .send(this.formatResponse(HttpStatus.OK, result));
+  }
+
+  @Put(':id/update')
+  async updateProduct(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: any,
+    @Res() res: any,
+  ) {
+    try {
+      const newProduct = this.transferMultipart<ProductCreateInput>(body, {
+        must: ['productName', 'description', 'productPrice'],
+      });
+      await this.productService.updateProduct(
+        id,
+        newProduct as ProductCreateInput,
+      );
+    } catch (e) {
+      if (e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID) {
+        return res
+          .code(HttpStatus.BAD_REQUEST)
+          .send(this.formatResponse(HttpStatus.BAD_REQUEST));
+      } else {
+        Logger.error('Unhandled Error: ' + e.message);
+        return res
+          .code(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+      }
+    }
+    return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
   }
 
   @Delete(':id/remove')

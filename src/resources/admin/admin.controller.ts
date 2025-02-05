@@ -1,21 +1,56 @@
 import {
   Body,
-  Controller, Delete,
+  Controller,
+  Delete,
   Get,
   HttpStatus,
-  Logger, Param, ParseIntPipe,
+  Logger,
+  Param,
+  ParseIntPipe,
   Post,
   Query,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminCreateInput } from '@/types/admin.type';
 import { BaseController } from '@/resources/base.controller';
+import { AdminGuard } from '@/guards/admin.guard';
 
 @Controller('admin/auth')
 export class AdminController extends BaseController {
   constructor(private readonly adminService: AdminService) {
     super();
+  }
+
+  @Post('login')
+  async loginAdmin(@Body() body: any, @Res() res: any) {
+    try {
+      const loginInfo = this.transferData(body, {
+        must: ['adminId', 'pwd'],
+      });
+      const result = await this.adminService.loginAdmin({
+        userId: loginInfo.adminId,
+        pwd: loginInfo.pwd,
+      });
+      return res
+        .code(HttpStatus.OK)
+        .send(this.formatResponse(HttpStatus.OK, result));
+    } catch (e) {
+      if (
+        e.message === this.CONTROLLER_EXCEPTIONS.DATA_TRANSFER_INVALID ||
+        e.message === AdminService.ADMIN_SERVICE_EXCEPTIONS.ADMIN_NOT_FOUND
+      ) {
+        return res
+          .code(HttpStatus.UNAUTHORIZED)
+          .send(this.formatResponse(HttpStatus.UNAUTHORIZED));
+      } else {
+        Logger.error('Unhandled Error: ' + e.message);
+        return res
+          .code(HttpStatus.INTERNAL_SERVER_ERROR)
+          .send(this.formatResponse(HttpStatus.INTERNAL_SERVER_ERROR));
+      }
+    }
   }
 
   @Post('new')
@@ -44,6 +79,7 @@ export class AdminController extends BaseController {
   }
 
   @Get('list')
+  @UseGuards(AdminGuard)
   async getAdmins(@Query() query: any, @Res() res: any) {
     const options = this.transferData(query, {
       must: [],

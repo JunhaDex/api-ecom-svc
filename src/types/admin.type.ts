@@ -214,3 +214,9 @@ export interface ShipmentCreateInput {
   trackingNo?: string;
   status?: number;
 }
+
+export interface UpdateTrackingInput {
+  trackingNo: string;
+  courierId: number;
+  status: number;
+}
