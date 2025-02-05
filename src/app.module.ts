@@ -20,7 +20,7 @@ import * as process from 'node:process';
       host: process.env.APP_DB_HOST ?? '',
       port: Number(process.env.APP_DB_PORT ?? 3306),
       username: process.env.APP_DB_USER ?? '',
-      password: process.env.APP_DB_PASSWARD ?? '',
+      password: process.env.APP_DB_PASSWORD ?? '',
       database: 'service',
       entities: ['dist/**/*.entity{.ts,.js}'],
       namingStrategy: new SnakeNamingStrategy(),
