@@ -34,6 +34,21 @@ export class PaymentService {
     await this.paymentRepository.save(payment);
   }
 
+  /* remove pending payment when canceled */
+  async findResetPayment(
+    newPayment: PaymentCreateInput,
+  ): Promise<PaymentEntity | void> {
+    const payment = await this.paymentRepository.findOne({
+      where: { orderId: newPayment.orderId },
+      relations: ['transaction'],
+    });
+    if (payment && payment.transaction) {
+      if (payment.transaction.status === 2) {
+        return payment;
+      }
+    }
+  }
+
   async updatePayment(
     index: number,
     params: {

@@ -11,13 +11,16 @@ import {
   Put,
   Query,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { BaseController } from '@/resources/base.controller';
 import { TransactionService } from '@/resources/transaction/transaction.service';
 import { UpdateTrackingInput } from '@/types/admin.type';
 import { CourierService } from '@/resources/shipment/courier.service';
+import { AdminGuard } from '@/guards/admin.guard';
 
 @Controller('admin/tx')
+@UseGuards(AdminGuard)
 export class TransactionController extends BaseController {
   constructor(
     private readonly txService: TransactionService,
@@ -76,6 +79,7 @@ export class TransactionController extends BaseController {
       const txUpdate = this.transferData<UpdateTrackingInput>(body, {
         must: ['trackingNo', 'courierId', 'status'],
       });
+      console.log(txUpdate);
       await this.txService.updateTransactionShipment(
         id,
         txUpdate as UpdateTrackingInput,

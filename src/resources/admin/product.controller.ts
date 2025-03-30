@@ -13,12 +13,15 @@ import {
   Query,
   Req,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductService } from '@/resources/product/product.service';
 import { ProductCreateInput } from '@/types/admin.type';
 import { StorageProvider } from '@/providers/storage.provider';
+import { AdminGuard } from '@/guards/admin.guard';
 
 @Controller('admin/product')
+@UseGuards(AdminGuard)
 export class AdminProductController extends BaseController {
   private storageProvider = new StorageProvider();
 
@@ -34,10 +37,11 @@ export class AdminProductController extends BaseController {
         must: ['productName', 'description', 'productPrice'],
       });
       const files = await req.saveRequestFiles();
-      console.log(files);
       if (files.length) {
-        newProduct.imageUrls =
-          await this.storageProvider.uploadProductImage(files);
+        newProduct.imageUrls = await this.storageProvider.uploadProductImage(
+          files,
+          'product',
+        );
       }
       console.log(newProduct);
       await this.productService.createProduct(newProduct as ProductCreateInput);
@@ -89,12 +93,24 @@ export class AdminProductController extends BaseController {
   async updateProduct(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: any,
+    @Req() req: any,
     @Res() res: any,
   ) {
     try {
       const newProduct = this.transferMultipart<ProductCreateInput>(body, {
         must: ['productName', 'description', 'productPrice'],
       });
+      newProduct.imageUrls = body.imageUrls
+        ? JSON.parse(body.imageUrls.value)
+        : [];
+      const files = await req.saveRequestFiles();
+      if (files.length) {
+        const added = await this.storageProvider.uploadProductImage(
+          files,
+          'product',
+        );
+        newProduct.imageUrls = [...newProduct.imageUrls, ...added];
+      }
       await this.productService.updateProduct(
         id,
         newProduct as ProductCreateInput,

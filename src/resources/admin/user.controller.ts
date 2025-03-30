@@ -12,6 +12,7 @@ import {
   Put,
   Query,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from '@/resources/user/user.service';
 import { GroupService } from '@/resources/user/group.service';
@@ -21,8 +22,10 @@ import {
   UserCreateInput,
   UserGroupCreateInput,
 } from '@/types/admin.type';
+import { AdminGuard } from '@/guards/admin.guard';
 
 @Controller('admin/user')
+@UseGuards(AdminGuard)
 export class AdminUserController extends BaseController {
   constructor(
     private readonly userService: UserService,

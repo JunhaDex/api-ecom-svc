@@ -27,3 +27,9 @@ export interface LoginInput {
   userId: string;
   password: string;
 }
+
+export interface UpdatePasswordInput {
+  oldPwd: string;
+  newPwd: string;
+  confirmPwd: string;
+}

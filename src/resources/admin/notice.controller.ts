@@ -11,12 +11,15 @@ import {
   Put,
   Query,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { BaseController } from '@/resources/base.controller';
 import { NoticeService } from '@/resources/notice/notice.service';
 import { NoticeCreateInput } from '@/types/admin.type';
+import { AdminGuard } from '@/guards/admin.guard';
 
 @Controller('admin/notice')
+@UseGuards(AdminGuard)
 export class NoticeController extends BaseController {
   constructor(private readonly noticeService: NoticeService) {
     super();

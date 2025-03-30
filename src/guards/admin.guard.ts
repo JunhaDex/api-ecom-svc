@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AdminService } from '@/resources/admin/admin.service';
 import { JwtService } from '@nestjs/jwt';
 
@@ -27,6 +32,6 @@ export class AdminGuard implements CanActivate {
         console.error('ADMIN GUARD :::::: ', e.message);
       }
     }
-    return false;
+    throw new UnauthorizedException();
   }
 }

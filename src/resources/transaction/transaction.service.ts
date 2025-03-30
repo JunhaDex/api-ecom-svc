@@ -43,6 +43,12 @@ export class TransactionService {
   ) {}
 
   async createTransaction(userId: number, transaction: TransactionCreateInput) {
+    const txExists = await this.paymentSvc.findResetPayment(
+      transaction.payment,
+    );
+    if (txExists) {
+      await this.cancelTransaction(userId, transaction.payment.orderId);
+    }
     await this.txRepo.manager.transaction(async (txManager) => {
       // create unauthorized payment
       const payment = (await this.paymentSvc.createPayment(
@@ -304,12 +310,12 @@ export class TransactionService {
               orderId: '',
               courierId: params.courierId,
               trackingNo: params.trackingNo,
-              status: params.status,
+              status: params.status === 3 ? 2 : 3,
             },
             txManager,
           );
           await txManager.update(TransactionEntity, tx.id, {
-            status: 3,
+            status: params.status,
           });
         });
       }

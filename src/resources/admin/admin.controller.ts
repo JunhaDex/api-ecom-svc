@@ -54,6 +54,7 @@ export class AdminController extends BaseController {
   }
 
   @Post('new')
+  @UseGuards(AdminGuard)
   async registerAdmin(@Body() body: any, @Res() res: any) {
     try {
       const newAdmin = this.transferData<AdminCreateInput>(body, {
@@ -101,6 +102,7 @@ export class AdminController extends BaseController {
   }
 
   @Delete(':id/remove')
+  @UseGuards(AdminGuard)
   async removeAdmin(@Param('id', ParseIntPipe) id: number, @Res() res: any) {
     await this.adminService.deleteAdmin(id);
     return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
