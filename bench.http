@@ -133,3 +133,10 @@ Content-Type: application/json
   "adminId": "admin",
   "pwd": "admin"
 }
+
+###
+POST http://localhost:3000/api/v1/admin/tx/export
+Content-Type: application/json
+Authorization: Bearer
+
+{}

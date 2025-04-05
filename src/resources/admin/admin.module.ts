@@ -30,6 +30,8 @@ import { CourierEntity } from '@/resources/shipment/entities/courier.entity';
 import { NoticeController } from '@/resources/admin/notice.controller';
 import { NoticeService } from '@/resources/notice/notice.service';
 import { NoticeEntity } from '@/resources/notice/entities/notice.entity';
+import { StatsService } from '@/resources/admin/stats.service';
+import { LogTxExportEntity } from '@/resources/admin/entities/tx_log.entity';
 
 @Module({
   imports: [
@@ -45,6 +47,7 @@ import { NoticeEntity } from '@/resources/notice/entities/notice.entity';
       ShipmentEntity,
       CourierEntity,
       NoticeEntity,
+      LogTxExportEntity,
     ]),
   ],
   controllers: [
@@ -65,6 +68,7 @@ import { NoticeEntity } from '@/resources/notice/entities/notice.entity';
     ShipmentService,
     CourierService,
     NoticeService,
+    StatsService,
   ],
 })
 export class AdminModule {}

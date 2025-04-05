@@ -1,5 +1,7 @@
-create database if not exists service;
-use service;
+create
+database if not exists service;
+use
+service;
 
 create table status_user
 (
@@ -173,12 +175,12 @@ create table payment
 (
     id             int unsigned auto_increment
         primary key,
-    pay_method     varchar(255)                        null,
-    payment_key    varchar(255)                        null comment 'from toss',
+    pay_method     varchar(255) null,
+    payment_key    varchar(255) null comment 'from toss',
     order_id       char(36)                            not null comment 'from toss uuid_v4',
     paid_amount    decimal(10, 2)                      not null comment 'from toss',
     balance_amount decimal(10, 2)                      not null comment 'when canceled',
-    receipt_url    varchar(255)                        null comment 'toss receipt url',
+    receipt_url    varchar(255) null comment 'toss receipt url',
     paid_at        datetime                            not null,
     created_at     timestamp default CURRENT_TIMESTAMP not null,
     updated_at     datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
@@ -191,12 +193,12 @@ create table transaction
     id         int unsigned auto_increment
         primary key,
     payment_id int unsigned                           not null,
-    tx_name    varchar(255)                           not null,
-    tx_note    text                                   null,
+    tx_name    varchar(255)                        not null,
+    tx_note    text null,
     user_id    int unsigned                           not null comment 'user ref key',
     status     int unsigned default '1'               not null,
-    created_at timestamp    default CURRENT_TIMESTAMP not null,
-    updated_at datetime     default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    created_at timestamp default CURRENT_TIMESTAMP not null,
+    updated_at datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint transaction_payment_id_fk
         foreign key (payment_id) references payment (id),
     constraint transaction_status_transaction_id_fk
@@ -242,7 +244,7 @@ create table shipment
     postal_code     varchar(10)                         not null,
     recipient_name  varchar(255)                        not null,
     recipient_phone varchar(20)                         not null,
-    tracking_no     varchar(255)                        null,
+    tracking_no     varchar(255) null,
     status          int unsigned                        not null,
     created_at      timestamp default CURRENT_TIMESTAMP not null,
     updated_at      datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
@@ -262,6 +264,15 @@ create table notice
     content    text null,
     created_at timestamp default CURRENT_TIMESTAMP not null,
     updated_at datetime  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP
+);
+
+create table log_tx_export
+(
+    id         int unsigned auto_increment
+        primary key,
+    admin_id   int unsigned                        not null,
+    last_tx_id int unsigned                        not null,
+    created_at timestamp default CURRENT_TIMESTAMP not null
 );
 
 

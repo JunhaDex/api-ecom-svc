@@ -220,3 +220,19 @@ export interface UpdateTrackingInput {
   courierId: number;
   status: number;
 }
+
+export interface LogTxData {
+  userId: number;
+  branchName: string;
+  orderId: string;
+  txName: string;
+  txTotalPaid: number;
+  productName: string;
+  perPaid: number;
+  paymentMethod: string;
+  txStatus: string;
+  courier: string;
+  trackingNo: string;
+  address: string;
+  paidAt: string;
+}

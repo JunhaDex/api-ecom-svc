@@ -25,7 +25,7 @@ import * as process from 'node:process';
       entities: ['dist/**/*.entity{.ts,.js}'],
       namingStrategy: new SnakeNamingStrategy(),
       synchronize: false,
-      logging: true,
+      logging: false,
     }),
     JwtModule.register({
       global: true,

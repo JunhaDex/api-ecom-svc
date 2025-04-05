@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -18,6 +19,7 @@ import { TransactionService } from '@/resources/transaction/transaction.service'
 import { UpdateTrackingInput } from '@/types/admin.type';
 import { CourierService } from '@/resources/shipment/courier.service';
 import { AdminGuard } from '@/guards/admin.guard';
+import { StatsService } from '@/resources/admin/stats.service';
 
 @Controller('admin/tx')
 @UseGuards(AdminGuard)
@@ -25,6 +27,7 @@ export class TransactionController extends BaseController {
   constructor(
     private readonly txService: TransactionService,
     private readonly courierService: CourierService,
+    private readonly statsService: StatsService,
   ) {
     super();
   }
@@ -150,5 +153,14 @@ export class TransactionController extends BaseController {
   async updateShipmentStatus(@Res() res: any) {
     await this.txService.trackShipment();
     return res.code(HttpStatus.OK).send(this.formatResponse(HttpStatus.OK));
+  }
+
+  @Post('export')
+  async exportTxData(@Req() req: any, @Res() res: any) {
+    const data = await this.statsService.exportTxLog();
+    await this.statsService.updateLedger(data);
+    return res
+      .code(HttpStatus.OK)
+      .send(this.formatResponse(HttpStatus.OK, data));
   }
 }

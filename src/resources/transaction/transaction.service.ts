@@ -368,7 +368,7 @@ export class TransactionService {
   }
 
   private async getShipmentStatus(txList: TransactionEntity[]) {
-    const shipStatus = await Promise.all(
+    return await Promise.all(
       txList.map(async (tx) => {
         const courier = tx.shipment.courier;
         if (courier) {
@@ -386,7 +386,9 @@ export class TransactionService {
             if (res.status === 200) {
               const list = res.data.data.svcOutList;
               const latest = list.pop(); // crgStDnm === 배송완료
-              return latest.crgStDnm === '배송완료';
+              if (latest) {
+                return latest.crgStDnm === '배송완료';
+              }
             }
           } else if (courier.id === 2) {
             // 로젠택배
@@ -405,6 +407,5 @@ export class TransactionService {
         return false;
       }),
     );
-    return shipStatus;
   }
 }
